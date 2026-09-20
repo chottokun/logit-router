@@ -131,3 +131,59 @@ def test_entropy_calculation(mock_router):
     assert entropy_uniform > entropy_skewed
     assert math.isclose(entropy_uniform, math.log(3), rel_tol=1e-2)
     assert math.isclose(entropy_skewed, 0.0, abs_tol=1e-2)
+
+
+def test_fallback_router():
+    from logit_router.optimizations import FallbackRouter
+
+    mock_router = MagicMock()
+    # Case where router is confident
+    mock_router.route.return_value = {
+        "best_choice": "A",
+        "best_letter": "A",
+        "confidence": 0.95,
+        "entropy": 0.1,
+        "distribution": {"A": 0.95, "B": 0.05},
+    }
+
+    fallback_fn = MagicMock(return_value={"best_choice": "Fallback"})
+    fb_router = FallbackRouter(
+        router=mock_router,
+        entropy_threshold=0.9,
+        margin_threshold=0.1,
+        fallback_fn=fallback_fn,
+    )
+
+    res = fb_router.route("ctx", "inst", ["A", "B"])
+    assert res["fallback_executed"] is False
+    assert res["best_choice"] == "A"
+    assert not fallback_fn.called
+
+    # Case where router is uncertain (high entropy)
+    mock_router.route.return_value = {
+        "best_choice": "A",
+        "best_letter": "A",
+        "confidence": 0.51,
+        "entropy": 1.5,
+        "distribution": {"A": 0.51, "B": 0.49},
+    }
+
+    res_uncertain = fb_router.route("ctx", "inst", ["A", "B"])
+    assert res_uncertain["fallback_executed"] is True
+    assert fallback_fn.called
+
+
+def test_apply_torch_compile():
+    from logit_router.optimizations import apply_torch_compile
+
+    mock_router = MagicMock()
+    orig_backbone = mock_router.backbone
+    with patch("torch.compile", return_value="compiled_backbone") as mock_compile:
+        result = apply_torch_compile(mock_router)
+        assert result is mock_router
+        assert mock_router.backbone == "compiled_backbone"
+        mock_compile.assert_called_once_with(
+            orig_backbone, mode="reduce-overhead", fullgraph=False
+        )
+
+
