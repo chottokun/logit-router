@@ -62,7 +62,7 @@ In routing prefill, relative margins between choice logits determine classificat
   - **Latency Trade-off**: p50 latency increases to **171.89 ms** due to dynamic on-the-fly dequantization in bitsandbytes.
 - **`Qwen2.5-1.5B-Instruct-AWQ (Marlin 4-bit)`**:
   - **Accuracy**: Reaches **84.0%** (84/100 correct), matching or exceeding the 81.0% BF16 baseline.
-  - **Latency**: Achieves an ultrafast **31.41 ms** p50 latency thanks to optimized Marlin FP16 GEMM kernels (faster than 34.84 ms in BF16).
+  - **Latency**: Achieves a fast **31.41 ms** p50 latency thanks to optimized Marlin FP16 GEMM kernels (faster than 34.84 ms in BF16).
   - **Peak VRAM**: Remains low at **2.96 GB**.
 
 **[Japanese]**
@@ -77,7 +77,7 @@ VRAM 制約のあるハードウェアでのデプロイを可能にするため
 - **`Qwen2.5-1.5B-Instruct-AWQ` (AWQ Marlin 4-bit)**:
   - **正解率**: **84.0%**（84/100問）を達成し、BF16 ベースライン（81.0%）と同等以上の結果を記録。
   - **レイテンシ**: 最適化された Marlin FP16 GEMM カーネルの効果により、p50 遅延は **31.41 ms**（BF16 の 34.84 ms より高速）をマーク。
-  - **ピーク VRAM**: **2.96 GB** に抑制され、超低遅延エッジゲートとして理想的な挙動を示します。
+  - **ピーク VRAM**: **2.96 GB** に抑制され、低遅延エッジゲートとして理想的な挙動を示します。
 
 ## Attention Architecture and Soft-Capping (Gemma 2 vs Gemma 4) / アテンション機構とソフトキャッピングの差異
 

@@ -30,9 +30,9 @@ This report presents strictly measured on-device performance metrics comparing m
 
 | Model / モデル | Accuracy / 正解率 | p50 Latency | Mean Latency | Peak VRAM | Mean Conf | 特徴・日本語適合性 |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **`google/gemma-4-E2B-it`** | **95.0%** (95/100) | **67.83 ms** | 75.27 ms | 9765.8 MB | 0.9945 | **最高精度**。日本語語彙圧縮・長文ニュアンス判定に圧倒的優位 |
+| **`google/gemma-4-E2B-it`** | **95.0%** (95/100) | **67.83 ms** | 75.27 ms | 9765.8 MB | 0.9945 | **最高精度**。日本語語彙圧縮・長文ニュアンス判定に優れた特性 |
 | `Qwen/Qwen2.5-3B-Instruct` | **85.0%** (85/100) | **62.76 ms** | 60.44 ms | 5908.5 MB | 0.9688 | バランス型。エントロピー分離度良好 |
-| `Qwen/Qwen2.5-1.5B-Instruct` | **81.0%** (81/100) | **34.84 ms** | 35.04 ms | 2964.1 MB | 0.8656 | 超高速（34ms）。第1層カスケードゲートに最適 |
+| `Qwen/Qwen2.5-1.5B-Instruct` | **81.0%** (81/100) | **34.84 ms** | 35.04 ms | 2964.1 MB | 0.8656 | 高速（34ms）。第1層カスケードゲートに最適 |
 | `Qwen/Qwen2.5-0.5B-Instruct` | **73.0%** (73/100) | **16.26 ms** | 18.66 ms | 957.5 MB | 0.7331 | 最速（16ms）。構文判定は良好だが行間解釈に限界 |
 | `HuggingFaceTB/SmolLM2-360M-Instruct` | **23.0%** (23/100) | **23.76 ms** | 29.19 ms | 706.2 MB | 0.4275 | 日本語・複合推論で大幅な過信誤分類が発生 |
 

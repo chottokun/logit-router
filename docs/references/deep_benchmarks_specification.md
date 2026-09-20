@@ -59,15 +59,15 @@ The 10 major domains include:
 ## Evaluation Metrics Definition / 評価メトリクス定義
 
 **[English]**
-The evaluation suite measures performance beyond simple accuracy, focusing heavily on latency and statistical confidence, which are critical for an ultra-low latency router.
+The evaluation suite measures performance beyond simple accuracy, focusing heavily on latency and statistical confidence, which are critical for a low-latency router.
 
-- **Latency Percentiles (p50/p95/p99)**: We measure the 50th (median), 95th, and 99th percentiles of routing latency to guarantee ultra-low overhead even in worst-case scenarios. This ensures tail latencies do not block the pipeline.
-- **Accuracy per Millisecond**: A composite metric evaluating the trade-off between speed and correctness. It is defined as `Overall Accuracy / Average Latency (ms)`. A higher value indicates an extremely efficient routing mechanism.
+- **Latency Percentiles (p50/p95/p99)**: We measure the 50th (median), 95th, and 99th percentiles of routing latency to evaluate overhead even in worst-case scenarios. This ensures tail latencies do not block the pipeline.
+- **Accuracy per Millisecond**: A composite metric evaluating the trade-off between speed and correctness. It is defined as `Overall Accuracy / Average Latency (ms)`. A higher value indicates an efficient routing mechanism.
 - **Entropy Calibration**: Measures the model's self-awareness of uncertainty. When entropy is high, the margin between the top choices is narrow, indicating the router is "unsure". The suite validates that instances of high entropy correlate properly with complex or Out-of-Distribution cases, triggering the `FallbackRouter` correctly.
 
 **[Japanese]**
-評価スイートは単純な正解率にとどまらず、超低遅延ルーターにとって極めて重要なレイテンシと統計的確信度に重点を置いてパフォーマンスを測定します。
+評価スイートは単純な正解率にとどまらず、低遅延ルーターにとって重要なレイテンシと統計的確信度に重点を置いてパフォーマンスを測定します。
 
-- **レイテンシのパーセンタイル (p50/p95/p99)**: ルーティングレイテンシの50パーセンタイル（中央値）、95パーセンタイル、および99パーセンタイルを測定し、最悪のシナリオでも超低オーバーヘッドを保証します。これにより、テールレイテンシがパイプラインをブロックしないことが保証されます。
-- **Accuracy per Millisecond (ミリ秒あたりの正解率)**: 速度と正確性のトレードオフを評価する複合指標。`全体正解率 / 平均レイテンシ (ms)` として定義されます。値が高いほど、極めて効率的なルーティングメカニズムであることを示します。
+- **レイテンシのパーセンタイル (p50/p95/p99)**: ルーティングレイテンシの50パーセンタイル（中央値）、95パーセンタイル、および99パーセンタイルを測定し、テールケースを含めたオーバーヘッドを評価します。これにより、テールレイテンシがパイプラインをブロックしないことを確認します。
+- **Accuracy per Millisecond (ミリ秒あたりの正解率)**: 速度と正確性のトレードオフを評価する複合指標。`全体正解率 / 平均レイテンシ (ms)` として定義されます。値が高いほど、効率的なルーティングメカニズムであることを示します。
 - **Entropy Calibration (エントロピーキャリブレーション)**: モデル自身の不確実性に対する認識を測定します。エントロピーが高い場合、上位の選択肢間のマージンが狭く、ルーターが「迷っている」ことを示します。スイートは、高エントロピーのインスタンスが複雑なケースや分布外（OOD）のケースと適切に相関し、`FallbackRouter` を正しくトリガーすることを検証します。

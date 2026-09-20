@@ -1,12 +1,12 @@
 # Logit Router / ロジットルーター
 
 **[English]**
-Ultra-low latency LLM-based routing via single forward pass logit extraction.
-An experimental Python implementation that extracts candidate logits directly from the initial prompt prefill pass of open-source LLMs (**Gemma 4**, **Gemma 2**, **Qwen 2.5**, **Llama**, etc.), achieving high-accuracy dynamic classification in sub-100ms latencies without autoregressive decoding loops or KV cache allocation.
+Low-latency LLM routing via single forward pass logit extraction.
+An experimental Python implementation that extracts candidate logits directly from the initial prompt prefill pass of open-source LLMs (**Gemma 4**, **Gemma 2**, **Qwen 2.5**, **Llama**, etc.), achieving dynamic classification in sub-100ms latencies without autoregressive decoding loops or KV cache allocation.
 
 **[Japanese]**
-単一フォワードパス（Prefill）からのロジット直接抽出による超低遅延LLMルーティング。
-オープンソースLLM（**Gemma 4**, **Gemma 2**, **Qwen 2.5**, **Llama 系列** 等）のプロンプト入力時フォワードパスから選択肢ロジットを直接抽出し、逐次自己回帰デコードループやKVキャッシュ確保を完全バイパスすることで、数ミリ秒〜数十ミリ秒の超低遅延かつ高精度な動的ルーティングを実験的に実現した Python コードです。
+単一フォワードパス（Prefill）からのロジット直接抽出による低遅延LLMルーティング。
+オープンソースLLM（**Gemma 4**, **Gemma 2**, **Qwen 2.5**, **Llama 系列** 等）のプロンプト入力時フォワードパスから選択肢ロジットを直接抽出し、逐次自己回帰デコードループやKVキャッシュ確保を行わずに、実測数十ミリ秒台で動的ルーティングを実験的に実現した Python コードです。
 
 ---
 
@@ -62,7 +62,7 @@ flowchart TD
 - **Zero Autoregressive Overhead**: Evaluates pure prompt prefill, achieving **1.6x to 5.8x speedup** (5.78x on Gemma 4) compared to standard `model.generate()`.
 - **Multi-Model Family Support**:
   - **`google/gemma-4-E2B-it`**: Achieves **95.0% accuracy** on a 100-case enterprise matrix. Its 262k vocabulary compresses complex Japanese terms into single tokens.
-  - **`Qwen/Qwen2.5` Series (0.5B / 1.5B / 3B)**: Balances ultra-low latency (16ms–62ms) with robust calibrated certainty.
+  - **`Qwen/Qwen2.5` Series (0.5B / 1.5B / 3B)**: Balances low latency (16ms–62ms) with robust calibrated certainty.
   - **`Llama` Series & `SmolLM2`**: Supports Byte-level BPE architectures.
 - **Sliced LM-Head Optimization**: Projects hidden states only onto candidate token indices ($K \ll V$). For a 262k vocabulary and 3 choices, projection operations are compressed to **~0.0011% (an 87,000x reduction)**, cutting 99.9989% of projection compute and memory traffic.
 - **Quantization Support**: Native support for 4-bit / 8-bit (`bitsandbytes`) and AWQ Marlin kernels with automatic quantized-head fallback.
@@ -70,10 +70,10 @@ flowchart TD
 - **Calibrated Cascade Routing**: Combines Shannon entropy with logit margin to trigger a Two-Tier cascade (Tier-1 fast gate $\rightarrow$ Tier-2 expert fallback).
 
 **[Japanese]**
-- **単一フォワードパス（Prefillのみ）**: 逐次デコードループとKVキャッシュを完全排除し、通常生成（`model.generate()`）比で **1.6倍〜5.8倍（Gemma 4 で 5.78倍）の高速化** を実現。
+- **単一フォワードパス（Prefillのみ）**: 逐次デコードループとKVキャッシュを排除し、通常生成（`model.generate()`）比で **1.6倍〜5.8倍（Gemma 4 で 5.78倍）の高速化** を実現。
 - **多様なモデルファミリー対応**:
-  - **`google/gemma-4-E2B-it`**: 100問の実務評価で **最高正解率 95.0%** を記録。26.2万語の巨大語彙により日本語複合語（「クレジットカード」等）を1トークンに圧縮。
-  - **`Qwen/Qwen2.5` 系列 (0.5B / 1.5B / 3B)**: 16ms〜62msの超低遅延と安定したエントロピー分離度を両立。
+  - **`google/gemma-4-E2B-it`**: 100問の実務評価で **最高正解率 95.0%** を記録。26.2万語の語彙により日本語複合語（「クレジットカード」等）を1トークンに圧縮。
+  - **`Qwen/Qwen2.5` 系列 (0.5B / 1.5B / 3B)**: 16ms〜62msの低遅延と安定したエントロピー分離度を両立。
   - **`Llama` 系列 / `SmolLM2`**: Byte-level BPE モデルへの対応。
 - **Sliced LM-Head 最適化**: 選択肢トークン行のみを行列積計算（語彙26.2万語・3選択肢の場合、全語彙射影の演算量を元の**約 0.0011%（約8.7万分の1）に圧縮し、99.9989% の計算量・メモリアクセスを削減**）。
 - **量子化対応**: 4-bit / 8-bit (`bitsandbytes`) および AWQ Marlin 量子化ヘッドの自動フォールバック。
@@ -93,10 +93,10 @@ Validated open-source models, Hugging Face repository links, licenses, and bench
 | Model ID / モデル名 | Hugging Face Link | License / ライセンス | Features & Recommended Use / 特徴・推奨用途 | On-Device Benchmark / 実機検証 |
 | :--- | :--- | :--- | :--- | :--- |
 | **`google/gemma-4-E2B-it`** | [google/gemma-4-E2B-it](https://huggingface.co/google/gemma-4-E2B-it) | [Gemma Terms](https://ai.google.dev/gemma/terms) (Commercial OK) | **Highest Accuracy (95.0%)**. 262k vocab Japanese compression / 最高精度・日本語複合語圧縮 | **Benchmarked (100 cases)** |
-| **`Qwen/Qwen2.5-1.5B-Instruct`** | [Qwen/Qwen2.5-1.5B-Instruct](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct) | [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) (Commercial OK) | **Ultra-low Latency (~35ms)**. Ideal Tier-1 cascade gate / 超低遅延ゲートに最適 | **Benchmarked (100 cases)** |
+| **`Qwen/Qwen2.5-1.5B-Instruct`** | [Qwen/Qwen2.5-1.5B-Instruct](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct) | [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) (Commercial OK) | **Low Latency (~35ms)**. Ideal Tier-1 cascade gate / 低遅延ゲートに最適 | **Benchmarked (100 cases)** |
 | **`Qwen/Qwen2.5-3B-Instruct`** | [Qwen/Qwen2.5-3B-Instruct](https://huggingface.co/Qwen/Qwen2.5-3B-Instruct) | [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) (Commercial OK) | Balanced profile (85.0% accuracy / 62ms latency) / 精度・速度バランス型 | **Benchmarked (100 cases)** |
 | **`Qwen/Qwen2.5-0.5B-Instruct`** | [Qwen/Qwen2.5-0.5B-Instruct](https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct) | [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) (Commercial OK) | Fastest (~16ms / 0.96GB VRAM). Syntax-level triage / 最速・構文判定向け | **Benchmarked (100 cases)** |
-| **`HuggingFaceTB/SmolLM2-360M-Instruct`** | [HuggingFaceTB/SmolLM2-360M-Instruct](https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct) | [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) (Commercial OK) | Ultra-compact (23ms / 0.7GB VRAM). English explicit tasks / 最軽量・英語明示タスク向け | **Benchmarked (100 cases)** |
+| **`HuggingFaceTB/SmolLM2-360M-Instruct`** | [HuggingFaceTB/SmolLM2-360M-Instruct](https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct) | [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) (Commercial OK) | Compact (23ms / 0.7GB VRAM). English explicit tasks / 小型・英語明示タスク向け | **Benchmarked (100 cases)** |
 | **`meta-llama/Llama-3.2-1B-Instruct`** | [meta-llama/Llama-3.2-1B-Instruct](https://huggingface.co/meta-llama/Llama-3.2-1B-Instruct) | [Llama 3.2 Community](https://llama.meta.com/llama3/license/) (Commercial OK) | Llama ecosystem support (Byte-level BPE) / Llamaエコシステム対応 | Verified in Code |
 | **`Qwen/Qwen2.5-1.5B-Instruct-AWQ`** | [Qwen/Qwen2.5-1.5B-Instruct-AWQ](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-AWQ) | [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) (Commercial OK) | AWQ 4-bit Marlin kernel. Faster than BF16 (31ms / 84.0% acc) / AWQ Marlin 最適化 | **Benchmarked (100 cases)** |
 | **`google/gemma-4-E2B-it` (4-bit)** | [google/gemma-4-E2B-it](https://huggingface.co/google/gemma-4-E2B-it) | [Gemma Terms](https://ai.google.dev/gemma/terms) (Commercial OK) | bitsandbytes 4-bit. Cuts VRAM by 32% while retaining 91.0% acc / VRAM 32% 削減 | **Benchmarked (100 cases)** |
@@ -121,7 +121,7 @@ uv add logit-router[dev]    # Development tools / 開発ツール
 
 ## Quick Start / クイックスタート
 
-### 1. Ultra-low Latency Routing / 超低遅延ルーティング (Qwen 2.5 1.5B: ~35ms)
+### 1. Low-Latency Routing / 低遅延ルーティング (Qwen 2.5 1.5B: ~35ms)
 ```python
 from logit_router import LogitRouter
 
@@ -172,7 +172,7 @@ router_4bit = LogitRouter(
 # Dedicated AWQ Marlin 4-bit
 router_awq = LogitRouter(
     model_id="Qwen/Qwen2.5-1.5B-Instruct-AWQ",
-    is_awq=True,        # 31.4ms latency with Marlin FP16 GEMM / Marlinカーネルで31ms超低遅延
+    is_awq=True,        # 31.4ms latency with Marlin FP16 GEMM / Marlinカーネルで31ms高速処理
 )
 ```
 
@@ -198,7 +198,7 @@ Direct A/B latency comparison between standard autoregressive generation (`model
 | **`google/gemma-4-E2B-it`** | 621.49 ms / 628.16 ms | **103.88 ms** / 108.71 ms | **5.78x Faster** | 262k vocab projection reduction effect is maximized / 語彙262kの射影削減効果最大 |
 | `Qwen/Qwen2.5-3B-Instruct` | 200.42 ms / 228.07 ms | **85.04 ms** / 96.45 ms | **2.36x Faster** | Balanced speed and accuracy / 精度と速度のバランス型 |
 | `Qwen/Qwen2.5-1.5B-Instruct` | 206.74 ms / 241.02 ms | **90.33 ms** / 103.70 ms | **2.32x Faster** | Optimal Tier-1 cascade gate / 第1層カスケードゲートに最適 |
-| `Qwen/Qwen2.5-0.5B-Instruct` | 101.96 ms / 97.86 ms | **50.65 ms** / 59.49 ms | **1.64x Faster** | Ultra-lightweight (0.96GB VRAM) / 最軽量・低VRAM（0.96GB） |
+| `Qwen/Qwen2.5-0.5B-Instruct` | 101.96 ms / 97.86 ms | **50.65 ms** / 59.49 ms | **1.64x Faster** | Lightweight (0.96GB VRAM) / 軽量・低VRAM（0.96GB） |
 | `HuggingFaceTB/SmolLM2-360M-Instruct` | 133.01 ms / 131.90 ms | **25.97 ms** / 27.95 ms | **4.72x Faster** | Fastest, but struggles with Japanese nuance / 最速だが日本語・複合推論に課題 |
 
 *Note: The p50 values above reflect isolated A/B test prompts. For holistic latencies across 100 diverse enterprise prompts, refer to Section 2 below (e.g., Gemma 4 holistic p50 is 67.83 ms, Qwen 1.5B is 34.84 ms).*
@@ -212,7 +212,7 @@ Comprehensive empirical evaluation across 100 operational scenarios covering too
 
 | Candidate Model / 候補モデル | Accuracy / 正解率 (100問) | p50 Latency | Peak VRAM | Mean Conf | Characteristics & Japanese Fit / 特徴と日本語適合性 |
 | :--- | :---: | :---: | :---: | :---: | :--- |
-| **`google/gemma-4-E2B-it`** | **95.0%** (95/100) | **67.83 ms** | 9.76 GB | 0.9945 | **Highest Accuracy**. 100% in 7 domains. Dominant Japanese nuance interpretation / 最高精度 |
+| **`google/gemma-4-E2B-it`** | **95.0%** (95/100) | **67.83 ms** | 9.76 GB | 0.9945 | **Highest Accuracy**. 100% in 7 domains. Strong Japanese nuance interpretation / 最高精度（7ドメインで100%達成） |
 | `Qwen/Qwen2.5-3B-Instruct` | **85.0%** (85/100) | 62.76 ms | 5.91 GB | 0.9688 | Robust entropy calibration / 安定したエントロピー分離度 |
 | `Qwen/Qwen2.5-1.5B-Instruct` | **81.0%** (81/100) | 34.84 ms | 2.96 GB | 0.8656 | >80% accuracy in sub-35ms latency / 35ms以下の高速判定で8割超の精度 |
 | `Qwen/Qwen2.5-0.5B-Instruct` | **73.0%** (73/100) | 16.26 ms | 0.96 GB | 0.7331 | Effective syntax classifier, limited on nuance / 構文判定は優秀だが行間解釈に限界 |
@@ -228,7 +228,7 @@ VRAM 制約環境向けの 4-bit 量子化（bitsandbytes NF4 および AWQ Marl
 | Configuration / 設定・モデル | Quant Method / 手法 | Accuracy (100問) | p50 Latency | Peak VRAM | Baseline Comparison / ベースライン比較 |
 | :--- | :--- | :---: | :---: | :---: | :--- |
 | **`google/gemma-4-E2B-it` (4-bit)** | bitsandbytes NF4 | **91.0%** (91/100) | 171.89 ms | **6.49 GB** (6643 MB) | **32% VRAM reduction** (-3.1GB), retaining 91% accuracy / 精度91%維持 |
-| **`Qwen2.5-1.5B-Instruct-AWQ`** | AWQ 4-bit (Marlin) | **84.0%** (84/100) | **31.41 ms** | **2.96 GB** (3033 MB) | **Ultrafast 31ms**, higher accuracy than unquantized baseline (+3%) / 超低遅延 |
+| **`Qwen2.5-1.5B-Instruct-AWQ`** | AWQ 4-bit (Marlin) | **84.0%** (84/100) | **31.41 ms** | **2.96 GB** (3033 MB) | **Fast 31ms**, higher accuracy than unquantized baseline (+3%) / 高速処理 (31ms) |
 
 ### 4. Layer Factor Decomposition Profile / 要因分解プロファイル (`bench_profile.py`)
 **[English]**
@@ -258,7 +258,7 @@ Execution breakdown per pipeline stage for a single query (~135 sequence tokens,
 - **推奨アーキテクチャ（2段階カスケード構成）**:
   1. **第1層（高速ゲート）**: `Qwen2.5-1.5B`（約35ms）で一次判定。エントロピー $H < 0.35$ かつロジットマージン $\Delta z > 1.5$（明確な約80%のクエリ）は即座に確定。
   2. **第2層（高精度フォールバック）**: 曖昧な難問（約20%）のみを `google/gemma-4-E2B-it`（95%精度）へエスカレーション。
-  - これにより、全体として **平均約48msの超低遅延を維持しながら、95%水準の最高精度を両立** できます。
+  - これにより、全体として **平均約48msの低遅延を維持しながら、95%水準の最高精度を両立** できます。
 
 For complete architectural details, see [Cascade Routing & Critical Analysis](docs/architecture/cascade_routing_and_critical_analysis.md).
 

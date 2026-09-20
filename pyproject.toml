@@ -1,7 +1,7 @@
 [project]
 name = "logit-router"
 version = "0.1.0"
-description = "Ultra-low latency LLM-based routing via single forward pass logit extraction"
+description = "Low-latency LLM routing via single forward pass logit extraction"
 readme = "README.md"
 requires-python = ">=3.14"
 license = "MIT"

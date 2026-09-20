@@ -24,7 +24,7 @@ sources:
 This document synthesizes empirical findings across 100 benchmark test cases on an NVIDIA GeForce RTX 3060 (12GB VRAM). We dissect critical failure modes observed in sub-1B models and present constructive, production-grade architectural solutions—centered around a **Two-Tier Cascade Routing Architecture** and **Multi-Metric Uncertainty Calibration**.
 
 **[Japanese]**
-本ドキュメントは、NVIDIA GeForce RTX 3060 (12GB VRAM) 実機における100問の深層評価から得られた客観的知見を整理した技術設計書です。1B未満の超軽量モデルにおける失敗要因を批判的に検証し、それらを克服するための建設的工学解として**2段階カスケードルーティング構成**および**多層信頼度キャリブレーション**を体系化します。
+本ドキュメントは、NVIDIA GeForce RTX 3060 (12GB VRAM) 実機における100問の深層評価から得られた客観的知見を整理した技術設計書です。1B未満の軽量モデルにおける失敗要因を批判的に検証し、それらを克服するための建設的工学解として**2段階カスケードルーティング構成**および**多層信頼度キャリブレーション**を体系化します。
 
 ---
 
@@ -56,7 +56,7 @@ This document synthesizes empirical findings across 100 benchmark test cases on 
 モデルルーティングタスク（「この質問を Small Model と Large Reasoning Model のどちらに振るべきか」）において、小型モデル（0.5B/360M）は問題自体の難解さを正しく認識できず、本来大規模推論モデルへ委託すべき高度な数理問題や法律相談を「自分自身（Fast Small Model）で回答可能」と誤判定する傾向が顕著に見られました。
 
 ### 1.4 高性能モデル（Gemma 4）のトレードオフ
-- `google/gemma-4-E2B-it` は 95.0% の圧倒的精度を達成した反面、VRAM 消費が **9.76 GB**、p50 レイテンシが **67.83 ms**（平均 75.27 ms）となります。
+- `google/gemma-4-E2B-it` は 95.0% の高精度を記録した反面、VRAM 消費が **9.76 GB**、p50 レイテンシが **67.83 ms**（平均 75.27 ms）となります。
 - 10〜20msの厳格なSLAが要求されるエッジ環境や高スループットAPIゲートウェイにおいて、全リクエストを Gemma 4 単体で処理することはレイテンシおよびメモリコストの観点から非効率です。
 
 ---
@@ -137,11 +137,11 @@ Gemma 4 の 26.2万語彙（262,144語）巨大語彙テーブルは、日本語
 ### 推奨環境構成
 | ユースケース | 推奨構成 | 期待レイテンシ (p50) | 期待精度 | 推奨ハードウェア / VRAM |
 | :--- | :--- | :---: | :---: | :--- |
-| **超低遅延 API ゲートウェイ** | 2段階カスケード (Qwen 1.5B BF16 $\rightarrow$ Gemma 4 BF16) | **48 ms** | **95.0%** | RTX 3060 (12GB) / L4 |
+| **低遅延 API ゲートウェイ** | 2段階カスケード (Qwen 1.5B BF16 $\rightarrow$ Gemma 4 BF16) | **48 ms** | **95.0%** | RTX 3060 (12GB) / L4 |
 | **低VRAM・コンシューマGPU** | 量子化カスケード (Qwen 1.5B AWQ $\rightarrow$ Gemma 4 4-bit) | **66 ms** | **91.0%** | RTX 3060 (12GB) / RTX 4060 Ti |
 | **最高精度重視エンタープライズ** | Gemma 4 単体 (BF16) | **68 ms** | **95.0%** | RTX 3060 / A10G (VRAM 10GB以上) |
 | **エッジ・極小リソース環境** | Qwen 1.5B AWQ 単体 (4-bit Marlin) | **31 ms** | **84.0%** | Jetson Orin / RTX 3050 (VRAM 3GB以上) |
 
 ### まとめ
-本アーキテクチャは、単一のモデルで速度と精度のトレードオフに悩むのではなく、**「超高速な Prefill スライスによる第1層スクリーニング」** と **「高度な文脈理解を持つ第2層フォールバック」** を数学的に統合することで、実用的な SLA とエンタープライズ品質の分類精度を同時に満たすものです。
+本アーキテクチャは、単一のモデルで速度と精度のトレードオフに悩むのではなく、**「高速な Prefill スライスによる第1層スクリーニング」** と **「高度な文脈理解を持つ第2層フォールバック」** を数学的に統合することで、実用的な SLA とエンタープライズ品質の分類精度を同時に満たすものです。
 

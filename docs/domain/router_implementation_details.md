@@ -88,7 +88,7 @@ if hasattr(self.model.lm_head, "weight") and self.model.lm_head.weight is not No
 - **量子化モデル (AWQ / GPTQ) 対応フォールバック (`is_sliced_head = False`)**:
   - 量子化された LM-Head は重みが直接のテンソル（`.weight`）として保持されず、カスタムカーネル（`qweight`, `scales`, `qzeros` 等）としてパックされています。
   - この場合、事前スライスを行わず、末尾隠れ状態を量子化 LM-Head に渡した直後に `full_logits[:, choice_token_tensor]` として必要なインデックスを抽出する安全なフォールバックパスを備えています。
-  - **実機検証結果**: `gptqmodel` / `autoawq` バックエンドによる AWQ Marlin カーネルの適用時、このフォールバックパスを通じた実行においても、`Qwen2.5-1.5B-Instruct-AWQ` で **p50 レイテンシ 31.41 ms（正解率 84.0%）** という BF16 ベースライン（34.84 ms）を上回る超高速処理が実証されています。また、`bitsandbytes` 4-bit (`load_in_4bit=True`) では `lm_head.weight` が保持されるため `is_sliced_head = True` が維持され、`google/gemma-4-E2B-it` で VRAM を 32% 削減しながら **91.0% の高精度** を維持することが確認されています。
+  - **実機検証結果**: `gptqmodel` / `autoawq` バックエンドによる AWQ Marlin カーネルの適用時、このフォールバックパスを通じた実行においても、`Qwen2.5-1.5B-Instruct-AWQ` で **p50 レイテンシ 31.41 ms（正解率 84.0%）** という BF16 ベースライン（34.84 ms）を上回る高速処理が実証されています。また、`bitsandbytes` 4-bit (`load_in_4bit=True`) では `lm_head.weight` が保持されるため `is_sliced_head = True` が維持され、`google/gemma-4-E2B-it` で VRAM を 32% 削減しながら **91.0% の高精度** を維持することが確認されています。
 
 ---
 
