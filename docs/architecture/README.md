@@ -28,11 +28,15 @@ Logit Router は、プロンプト末尾の単一フォワードパス（Prefill
 2. **Sliced LM-Head**: Slices the language model projection layer to calculate logits only for active candidate tokens.
 3. **Index Mapping**: Maps arbitrary candidate descriptions to single-character indices (`A`, `B`, `C`, ...) to ensure deterministic single-token classification.
 
-For details, refer to [Single Forward Pass Routing](single_forward_pass_routing.md).
+For details, refer to:
+- [Single Forward Pass Routing](single_forward_pass_routing.md)
+- [Gemma Architecture & Quantization](gemma_and_quantization.md)
 
 **[Japanese]**
 1. **単一フォワードパス抽出**: プロンプト末尾トークンのロジットのみを抽出することで、逐次トークン生成を省略します。
 2. **Sliced LM-Head**: 言語モデルの最終射影層をスライスし、評価対象の選択肢トークンのみを行列積計算の対象とします。
 3. **インデックスマッピング**: 任意の候補ラベルを単一文字（`A`, `B`, `C`, ...）へ対応付け、単一トークンによる確定的分類を実現します。
 
-技術仕様の詳細は [Single Forward Pass Routing (単一フォワードパスルーティング)](single_forward_pass_routing.md) を参照してください。
+技術仕様の詳細は以下を参照してください：
+- [Single Forward Pass Routing (単一フォワードパスルーティング)](single_forward_pass_routing.md)
+- [Gemma Architecture & Quantization (Gemma アーキテクチャと量子化技術)](gemma_and_quantization.md)

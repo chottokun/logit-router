@@ -185,3 +185,70 @@ def test_apply_torch_compile():
         mock_compile.assert_called_once_with(
             orig_backbone, mode="reduce-overhead", fullgraph=False
         )
+
+def test_gemma_tokenizer(mock_router):
+    with patch("logit_router.router.AutoTokenizer") as mock_tokenizer, \
+         patch("logit_router.router.AutoModelForCausalLM") as mock_model_cls, \
+         patch("torch.cuda.is_available", return_value=False):
+
+        mock_tok_inst = MagicMock()
+        mock_tok_inst.encode.side_effect = lambda x, **kwargs: [ord(x[-1])]
+        mock_tokenizer.from_pretrained.return_value = mock_tok_inst
+
+        mock_model_inst = MagicMock()
+        fake_weights = torch.randn(100, 32)
+        mock_model_inst.lm_head.weight = fake_weights
+        mock_model_cls.from_pretrained.return_value = mock_model_inst
+
+        LogitRouter(model_id="google/gemma-2b", device="cpu", max_choices=2)
+
+        # In Gemma, it should encode exactly 'A' not ' A'
+        mock_tok_inst.encode.assert_any_call("A", add_special_tokens=False)
+        mock_tok_inst.encode.assert_any_call("B", add_special_tokens=False)
+
+        LogitRouter(model_id="Qwen/Qwen2.5-1.5B", device="cpu", max_choices=2)
+        mock_tok_inst.encode.assert_any_call(" A", add_special_tokens=False)
+        mock_tok_inst.encode.assert_any_call(" B", add_special_tokens=False)
+
+def test_awq_quantized_head(mock_router):
+    with patch("logit_router.router.AutoTokenizer") as mock_tokenizer, \
+         patch("logit_router.router.AutoModelForCausalLM") as mock_model_cls, \
+         patch("torch.cuda.is_available", return_value=False):
+
+        mock_tok_inst = MagicMock()
+        mock_tok_inst.encode.return_value = [42]
+
+        class FakeInputs(dict):
+            def to(self, device): return self
+
+        mock_tok_inst.return_value = FakeInputs({
+            "input_ids": torch.tensor([[1, 2, 3]]),
+            "attention_mask": torch.tensor([[1, 1, 1]])
+        })
+        mock_tokenizer.from_pretrained.return_value = mock_tok_inst
+
+        mock_model_inst = MagicMock()
+        # Remove weight attribute to simulate AWQ quantized head
+        del mock_model_inst.lm_head.weight
+
+        # Create a mock for lm_head call
+        def mock_lm_head_call(x):
+            # return shape: (batch, seq, vocab)
+            return torch.ones(x.shape[0], 100)
+
+        mock_model_inst.lm_head.side_effect = mock_lm_head_call
+
+        class FakeOutputs:
+            def __init__(self, hidden_state):
+                self.last_hidden_state = hidden_state
+        mock_model_inst.model.return_value = FakeOutputs(torch.randn(1, 10, 32))
+
+        mock_model_cls.from_pretrained.return_value = mock_model_inst
+
+        router_awq = LogitRouter(model_id="TheBloke/Llama-2-7B-AWQ", device="cpu", max_choices=2)
+
+        assert not router_awq.is_sliced_head
+
+        result = router_awq.route("ctx", "inst", ["A", "B"])
+        assert result["best_choice"] in ["A", "B"]
+        assert len(result["distribution"]) == 2

@@ -14,6 +14,7 @@ class LogitRouter:
         load_in_4bit: bool = False,
         load_in_8bit: bool = False,
         device_map: str | dict | None = None,
+        is_awq: bool = False,
     ):
         if device is None:
             self.device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -23,9 +24,12 @@ class LogitRouter:
         self.max_choices = max_choices
         self.tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast=True)
 
+        is_awq_model = is_awq or "awq" in model_id.lower()
+        is_gemma2 = "gemma" in model_id.lower()
+
         dtype = (
             "auto"
-            if (load_in_4bit or load_in_8bit)
+            if (load_in_4bit or load_in_8bit or is_awq_model)
             else (torch.bfloat16 if self.device == "cuda" else torch.float32)
         )
 
@@ -55,9 +59,10 @@ class LogitRouter:
             model_kwargs["quantization_config"] = quantization_config
 
         try:
+            attn_impl = "sdpa" if is_gemma2 else "flash_attention_2"
             self.model = AutoModelForCausalLM.from_pretrained(
                 model_id,
-                attn_implementation="flash_attention_2",
+                attn_implementation=attn_impl,
                 **model_kwargs,
             )
         except (ImportError, Exception):
@@ -71,15 +76,29 @@ class LogitRouter:
         self.backbone = self.model.model
 
         self.choice_letters = [chr(ord("A") + i) for i in range(max_choices)]
-        self.choice_token_ids = [
-            self.tokenizer.encode(f" {letter}", add_special_tokens=False)[-1]
-            for letter in self.choice_letters
-        ]
+
+        if is_gemma2:
+            self.choice_token_ids = [
+                self.tokenizer.encode(letter, add_special_tokens=False)[-1]
+                for letter in self.choice_letters
+            ]
+        else:
+            self.choice_token_ids = [
+                self.tokenizer.encode(f" {letter}", add_special_tokens=False)[-1]
+                for letter in self.choice_letters
+            ]
 
         choice_token_tensor = torch.tensor(self.choice_token_ids, device=self.device)
-        self.choice_head_weights = (
-            self.model.lm_head.weight[choice_token_tensor].detach().clone()
-        )
+        self.is_sliced_head = False
+        self.choice_head_weights = None
+        if (
+            hasattr(self.model.lm_head, "weight")
+            and self.model.lm_head.weight is not None
+        ):
+            self.choice_head_weights = (
+                self.model.lm_head.weight[choice_token_tensor].detach().clone()
+            )
+            self.is_sliced_head = True
 
     @torch.inference_mode()
     def route(
@@ -152,8 +171,16 @@ Answer: """
         # head weights: (max_choices, hidden_size)
         # last_hidden_state: (batch_size, hidden_size)
         # logits: (batch_size, num_choices)
-        active_head_weights = self.choice_head_weights[:num_choices]
-        logits = torch.matmul(last_hidden_state, active_head_weights.t())
+        if self.is_sliced_head:
+            active_head_weights = self.choice_head_weights[:num_choices]
+            logits = torch.matmul(last_hidden_state, active_head_weights.t())
+        else:
+            # Fallback if lm_head is quantized (e.g. AWQ) and has no 'weight'
+            full_logits = self.model.lm_head(last_hidden_state)
+            choice_token_tensor = torch.tensor(
+                self.choice_token_ids[:num_choices], device=self.device
+            )
+            logits = full_logits[:, choice_token_tensor]
 
         logits = logits / temperature
         probs = F.softmax(logits, dim=-1).squeeze(0).tolist()

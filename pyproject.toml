@@ -13,6 +13,7 @@ dependencies = [
 
 [project.optional-dependencies]
 flash = ["flash-attn"]
+awq = ["autoawq"]
 dev = ["pytest", "ruff", "fastapi", "uvicorn"]
 
 [build-system]

@@ -10,4 +10,7 @@
 * **Revision**: すべてのドキュメントを大幅に拡充し、英語 (English) と日本語 (Japanese) の完全なバイリンガル形式 (Bilingual JP/EN) に改訂。`docs/raw` の参照を削除し、実際のソースコードを根拠とするように修正。
 * **Creation**: `benchmarks/eval_suite.py` および `benchmarks/data/eval_cases.json`（5大ドメイン50問）の構築と実機評価、`docs/references/eval_report.md` の発行。
 * **Tone & Phrasing Revision**: 全ドキュメントの文体を技術者向けの実直・客観的な記述に推敲。過大な表現や誇張を排除し、数式、アルゴリズム計算量、および実機測定データ（RTX 3060）に基づく客観的な記述に統一。
+* **Architecture Expansion**: `docs/architecture/gemma_and_quantization.md` - Gemma 2 / Gemma 4 の 262K 超巨大語彙に対する Sliced LM-Head のスケーリング優位性および 4-bit/8-bit 量子化仕様を文書化。
+* **Deep Evaluation Suite**: `docs/references/deep_benchmarks_specification.md` - 10大ドメイン計100問の超網羅的データセット仕様（`deep_eval_cases.json`）を策定。
+* **Empirical Speedup & Multi-Model Matrix**: `docs/references/comparison_vs_generation_report.md`（通常生成との直接対決実測: 2倍〜8.8倍高速化）および `docs/references/robustness_matrix_report.md`（順列一致率 100%）を発行。
 

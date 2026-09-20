@@ -29,13 +29,27 @@ This section documents empirical benchmarks, profiling protocols, and validation
 - **Robustness and Sensitivity**: Quantitative evaluation of candidate permutation order (position bias) and entropy shifts on out-of-distribution (OOD) inputs.
 - **Task Evaluation**: Domain-specific classification accuracy and latency characteristics across evaluation datasets.
 
-For details on profiling protocols and metrics, refer to [Benchmarks and Metrics](benchmarks_and_metrics.md).
-For empirical accuracy and latency measurements across evaluation tasks, see [Model Evaluation Report](eval_report.md).
+For details on profiling protocols and metrics, refer to:
+- [Benchmarks and Metrics](benchmarks_and_metrics.md)
+- [Deep Evaluation Suite Specification](deep_benchmarks_specification.md)
+
+Empirical on-device reports:
+- [Comparison vs Standard Generation](comparison_vs_generation_report.md) (LogitRouter vs model.generate speedup)
+- [Multi-Model Benchmark Report](multi_model_benchmark_report.md) (0.5B vs 1.5B vs 3B latency & accuracy)
+- [Cross-Model Robustness Report](robustness_matrix_report.md) (Permutation consistency & OOD separation)
+- [Model Evaluation Report](eval_report.md)
 
 **[Japanese]**
 - **レイテンシプロファイリング**: CUDAイベント同期を用いた、ホスト-デバイス間転送、Transformerフォワードパス、および語彙スライス射影層の実行時間測定。
 - **頑健性と感度評価**: 候補順序の入れ替え（位置バイアス）に対する一貫性、および分布外（OOD）入力時における情報エントロピーの変動検証。
 - **タスク別評価**: 検証データセットを用いたドメイン別の分類正解率および遅延特性の測定。
 
-計測プロトコルおよび評価指標の詳細については [Benchmarks and Metrics (ベンチマークと評価指標)](benchmarks_and_metrics.md) を参照してください。
-検証タスクにおける正解率および測定結果については [Model Evaluation Report (モデル評価レポート)](eval_report.md) を参照してください。
+計測プロトコルおよび評価指標の詳細：
+- [Benchmarks and Metrics (ベンチマークと評価指標)](benchmarks_and_metrics.md)
+- [Deep Evaluation Suite Specification (深層評価スイート仕様書)](deep_benchmarks_specification.md)
+
+実機実測レポート：
+- [Comparison vs Standard Generation (通常生成との実機比較実測レポート)](comparison_vs_generation_report.md)
+- [Multi-Model Benchmark Report (複数モデル横断実機比較レポート)](multi_model_benchmark_report.md)
+- [Cross-Model Robustness Report (モデル別頑健性・位置バイアス実機評価レポート)](robustness_matrix_report.md)
+- [Model Evaluation Report (モデル評価レポート)](eval_report.md)
