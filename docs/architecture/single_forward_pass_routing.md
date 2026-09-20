@@ -79,7 +79,7 @@ A common production pattern for classification is forcing language models to emi
 2. **Constrained Decoding Overhead**:
    Grammar-guided decoding engines (e.g., Outlines, vLLM guided decoding) perform regex-to-automata token masking on each step across the entire vocabulary ($V \ge 150\text{k}$), introducing recurring CPU-GPU synchronization points.
 3. **LogitRouter Zero-Token Advantage**:
-   LogitRouter produces a fully typed Python dataclass (`RouteResult`) with exact winner, normalized probability distribution, and Shannon entropy directly from raw model logits in **0 generated tokens**, avoiding JSON serialization, syntax validation, and autoregressive overhead entirely. Consequently, against structured JSON generation, LogitRouter achieves an estimated **10x to 20x latency reduction**.
+   LogitRouter produces a fully typed Python dataclass (`RouteResult`) with exact winner, normalized probability distribution, and Shannon entropy directly from raw model logits in **0 generated tokens**, avoiding JSON serialization, syntax validation, and autoregressive overhead entirely. Consequently, against structured JSON generation, theoretical projections suggest LogitRouter could achieve an estimated **10x to 20x latency reduction** (though empirical benchmark harness verification remains for future work).
 
 **[Japanese]**
 業務システムにおける一般的な分類実装として、JSON Schema、Pydantic、または Function Calling を用いて LLM に構造化 JSON を出力させる手法が広く用いられています。しかし、このアプローチは LogitRouter と比較して深刻な遅延ペナルティを抱えます：
@@ -93,4 +93,4 @@ A common production pattern for classification is forcing language models to emi
 2. **文法制約デコード（Constrained Decoding）のオーバーヘッド**:
    JSON 構文を保証するために Outlines や vLLM の Guided Decoding 等を用いる場合、毎ステップ全語彙（$V \ge 150,000$）に対して正規表現・オートマトンに基づくロジットマスキング処理が走り、CPU-GPU 間の同期やカーネルオーバーヘッドが加算されます。
 3. **LogitRouter のゼロトークン優位性**:
-   LogitRouter は最初から確定的な Python データクラス（`RouteResult`）として、勝者、正規化確率分布、シャノンエントロピーを **新規生成 0 トークン** で直接構築します。JSON 文字列の生成やパースエラーの懸念そのものを排除し、Structured Output 生成構成に対して **10倍〜20倍以上のレイテンシ圧縮** を実現します。
+   LogitRouter は最初から確定的な Python データクラス（`RouteResult`）として、勝者、正規化確率分布、シャノンエントロピーを **新規生成 0 トークン** で直接構築します。JSON 文字列の生成やパースエラーの懸念そのものを排除します。なお、この Structured Output 構成に対する **10倍〜20倍の高速化は生成トークン数に基づく理論上の試算** であり、未測定の予測値であることに留意が必要です。

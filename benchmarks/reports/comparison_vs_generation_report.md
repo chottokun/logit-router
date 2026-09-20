@@ -79,16 +79,20 @@ The benchmark evaluates three distinct inference configurations to capture reali
 - **自己回帰生成のオーバーヘッド**: 通常の `model.generate()` では、1トークン生成するごとに逐次カーネル起動、KVキャッシュ確保、およびメモリストリーミング（メモリバウンド制約）が発生します。仮に1トークンで終了した場合でも、generation_config の初期化、KVキャッシュバッファの確保、および全語彙（Qwen: 151,936語、Gemma: 262,144語）に対する巨大な射影・Softmax計算が必須となり、大きな固定オーバーヘッドとなります。
 - **単一フォワードパスの優位性**: LogitRouter はプロンプトのPrefill完了直後に処理を完了し、全語彙射影を行わず選択肢トークン（数行）のみにスライスしてロジットを抽出するため、オーバーヘッドが極小化されます。
 
-## Theoretical Analysis on Structured Outputs (JSON) / 構造化出力（JSON等）における更なる格差
+## Theoretical Projection on Structured Outputs (JSON) / 構造化出力（JSON等）に関する理論的試算（※未実測の推計）
+
+> [!WARNING]
+> **注意 (Unmeasured Theoretical Projection)**:
+> 以下の数値は、一般的な自己回帰デコード速度（10〜15ms/token）および想定トークン数に基づく**理論上の概算試算（推計）**であり、本リポジトリの実機測定ベンチマークによる実測値ではありません。「実際に測定した実測値のみを記載する」という原則に基づき、実機測定データとは明確に区別して記載しています。
 
 **[English]**
-When production architectures require structured routing responses (e.g., JSON schema adherence via Instructor, Outlines, or Function Calling), the performance delta between LogitRouter and standard generation expands even further:
-- **Token Multiplier**: Generating a minimal JSON payload (e.g., `{"route": "IT_Support", "confidence": 0.98}`) consumes $35 \sim 60$ tokens. At an autoregressive decoding rate of $10 \sim 15\,\text{ms/token}$, this adds $500 \sim 800\,\text{ms}$ of pure sequential overhead.
-- **Constrained Decoding Overhead**: Regular expression and JSON grammar masking at each step across the full vocabulary introduces CPU-GPU synchronization stalls.
-- **Estimated Speedup**: While LogitRouter provides a $2.3\text{x} \sim 5.8\text{x}$ speedup against minimal 1-character generation, against structured JSON generation the speedup factor is projected to reach **$10\text{x} \sim 20\text{x}+$**.
+When production architectures require structured routing responses (e.g., JSON schema adherence via Instructor, Outlines, or Function Calling), the performance delta against single forward pass routing is projected to increase based on token length:
+- **Token Inflation**: Generating a minimal JSON payload (e.g., `{"route": "IT_Support", "confidence": 0.98}`) typically requires $35 \sim 60$ tokens depending on schema design.
+- **Projected Latency**: Assuming an average decoding speed of $10 \sim 15\,\text{ms/token}$, decoding $50$ tokens adds an estimated $500 \sim 750\,\text{ms}$ of sequential latency.
+- **Theoretical Projection**: Under such workloads, the speedup factor of a zero-token single forward pass relative to structured generation is theoretically estimated to reach **$10\text{x} \sim 20\text{x}$**, though this has not been empirically verified in the current test harness.
 
 **[Japanese]**
-本番環境で JSON スキーマや Function Calling による構造化出力を LLM に強制する場合、LogitRouter と通常生成のレイテンシ格差はさらに拡大します：
-- **トークン数の爆発**: 最小限の JSON（例: `{"route": "IT_Support", "confidence": 0.98}`）であっても $35 \sim 60$ トークンを消費します。1トークンあたり $10 \sim 15\,\text{ms}$ の逐次デコード速度では、これだけで $500 \sim 800\,\text{ms}$ の遅延が加算されます。
-- **制約付きデコードの負荷**: 毎ステップ全語彙（15万〜26万語）に対して行われる文法ロジットマスキングにより、カーネルオーバーヘッドが累積します。
-- **期待される高速化倍率**: 「最短1文字生成」に対して LogitRouter は **2.3倍〜5.8倍** 高速化しますが、**「構造化 JSON 生成」に対しては 10倍〜20倍以上の圧倒的な速度差** となることが理論的・工学的に裏付けられます。
+本番環境で JSON スキーマや Function Calling による構造化出力を LLM に要求する場合、生成トークン数の増加に伴い理論上のレイテンシ格差はさらに開くものと推計されます：
+- **トークン数の増加**: 最小限の JSON（例: `{"route": "IT_Support", "confidence": 0.98}`）であっても、スキーマ定義に応じて $35 \sim 60$ トークン程度を消費します。
+- **試算されるデコード遅延**: 1トークンあたり $10 \sim 15\,\text{ms}$ の逐次デコード速度を前提とすると、50トークン生成で約 $500 \sim 750\,\text{ms}$ のデコード遅延が上乗せされる計算になります。
+- **理論上の試算**: このような構造化出力ワークロードに対しては、単一フォワードパス方式が **10倍〜20倍程度高速化する可能性** が計算上考えられますが、**現時点では実機ベンチマークハーネスによる実測測定は実施しておらず、あくまで理論的試算にとどまります**。
