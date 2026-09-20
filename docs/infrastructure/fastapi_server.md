@@ -1,11 +1,11 @@
 ---
 type: concept
 title: FastAPI Server / FastAPI サーバー
-description: Details of the FastAPI server implementation, lifespan events, and inference endpoints / FastAPIサーバーの実装、ライフサイクルイベント、推論エンドポイントの詳細
+description: Technical architecture of FastAPI inference service, lifespan management, and API specifications / FastAPI推論サービス、ライフスパン管理、およびAPI仕様の解説
 status: stable
 generated:
   by: jules/agent
-  at: "2026-09-20T14:15:00Z"
+  at: "2026-09-20T15:00:00Z"
 tags:
   - infrastructure
   - fastapi
@@ -17,49 +17,57 @@ sources:
 # FastAPI Server / FastAPI サーバー
 
 **[English]**
-Deploying an LLM for real-time routing requires strict control over when and how the model is loaded into VRAM/RAM. The Logit Router uses FastAPI to provide a fast, asynchronous HTTP interface, optimized for minimal overhead.
+Serving an LLM-based router with millisecond latency requirements necessitates keeping model weights resident in accelerator memory (VRAM). The service utilizes FastAPI with asynchronous handlers to expose HTTP endpoints without incurring per-request model initialization overhead.
 
 **[Japanese]**
-リアルタイムルーティングのためにLLMをデプロイするには、モデルをいつ、どのように VRAM / RAM にロードするかを厳密に制御する必要があります。Logit Router は FastAPI を使用して、最小限のオーバーヘッドに最適化された、高速で非同期の HTTP インターフェースを提供します。
+ミリ秒単位の応答が求められるLLMルーターの運用では、モデル重みをアクセラレータメモリ（VRAM）上に常駐させることが必須となります。本サービスでは、非同期ハンドラを備えたFastAPIを採用し、リクエストごとのモデル初期化オーバーヘッドを発生させずにHTTPエンドポイントを提供します。
 
-## Model Residency via Lifespan Events / ライフスパンイベントによるモデルの常駐
+## Model Lifecycle via Lifespan Handlers / ライフスパンハンドラによるモデル常駐
 
 **[English]**
-Loading an LLM from disk and moving its weights to the GPU takes several seconds to minutes. It is impossible to do this on every request. 
-Instead, we use FastAPI's `@asynccontextmanager` lifespan events. When the server starts, the `lifespan` function is triggered. It initializes the `LogitRouter` object (which loads the model weights and tokenizer) exactly once and attaches it to the global `app.state`. 
-When the server shuts down, the lifespan context yields and cleans up resources.
+Model loading from secondary storage and tensor initialization on GPU devices require several seconds. Loading model weights during request processing would violate latency constraints.
+To maintain constant residency, the service utilizes FastAPI's `@asynccontextmanager` lifespan interface:
+1. During application startup, `lifespan` initializes the `LogitRouter` instance once, loading the tokenizer and model weights onto the target device (`torch.device("cuda")`).
+2. The initialized instance is attached to `app.state.router` for direct reference by path operations.
+3. During application shutdown, the context yields and handles GPU resource cleanup.
 
-Environment variables like `LOGIT_ROUTER_MODEL` and `LOGIT_ROUTER_DEVICE` are used within the lifespan context to configure the model dynamically at runtime.
+Configuration parameters (e.g., model path, precision, and device target) are read from environment variables such as `LOGIT_ROUTER_MODEL` and `LOGIT_ROUTER_DEVICE`.
 
 **[Japanese]**
-ディスクからLLMをロードし、その重みを GPU に移動するには数秒から数分かかります。これをリクエストごとに実行することは不可能です。
-代わりに、FastAPI の `@asynccontextmanager` ライフスパンイベントを使用します。サーバーが起動すると、`lifespan` 関数がトリガーされます。この関数は、`LogitRouter` オブジェクト（モデルの重みとトークナイザーをロードする）を正確に一度だけ初期化し、それをグローバルな `app.state` にアタッチします。
-サーバーがシャットダウンすると、ライフスパンコンテキストが `yield` され、リソースがクリーンアップされます。
+ストレージからのモデル読み込みおよびGPUデバイス上でのテンソル初期化には数秒を要するため、リクエスト処理中にモデルをロードする構成はレイテンシ要件を満たしません。
+モデルをメモリ上に常時維持するため、FastAPI の `@asynccontextmanager` によるライフスパンインターフェースを採用しています：
+1. アプリケーション起動時に、`lifespan` 関数が `LogitRouter` インスタンスを1度だけ初期化し、トークナイザおよびモデル重みを指定デバイス（`torch.device("cuda")`）へロードします。
+2. 初期化済みインスタンスは `app.state.router` に格納され、各ルーティングハンドラから参照されます。
+3. アプリケーション停止時にコンテキストが終了し、GPUリソースの解放処理を行います。
 
-`LOGIT_ROUTER_MODEL` や `LOGIT_ROUTER_DEVICE` などの環境変数は、ライフスパンコンテキスト内で使用され、実行時にモデルを動的に構成します。
+モデル識別子、演算精度、計算デバイスなどの設定は、`LOGIT_ROUTER_MODEL` や `LOGIT_ROUTER_DEVICE` などの環境変数から読み込まれます。
 
-## Inference Endpoint API Specification / 推論エンドポイントAPI仕様
+## Endpoint Specifications / エンドポイント仕様
 
 **[English]**
-The primary entry point is the `POST /route` endpoint.
+The primary interface is the `POST /route` endpoint.
 
-**Request (`RouteRequestModel`)**:
-Requires a JSON body containing `context` (string), `instruction` (string), `choices` (list of strings), and an optional `temperature` (float). Validation is automatically handled by Pydantic.
-
-**Response (`RouteResponseModel`)**:
-Returns the structured data from the router, including `best_choice`, `best_letter`, `confidence`, `entropy`, and the probabilistic `distribution` over the choices.
-
-**Error Handling**:
-If the number of choices exceeds the model's `max_choices`, a `400 Bad Request` is returned. Other internal failures (e.g., CUDA OOM) are caught and returned as a `500 Internal Server Error`.
+- **Request Body (`RouteRequestModel`)**:
+  - `context` (str): Grounding text.
+  - `instruction` (str): Categorization query.
+  - `choices` (list[str]): Candidate choices (length bounded by `max_choices`).
+  - `temperature` (float, optional): Logit temperature (default: `1.0`).
+- **Response (`RouteResponseModel`)**:
+  - `best_choice` (str), `best_letter` (str), `confidence` (float), `entropy` (float), and `distribution` (dict[str, float]).
+- **Error Handling**:
+  - Returns `400 Bad Request` if the number of provided choices exceeds `max_choices`.
+  - Unhandled exceptions return `500 Internal Server Error` with relevant log records.
 
 **[Japanese]**
-主要なエントリポイントは `POST /route` エンドポイントです。
+主要インターフェースは `POST /route` エンドポイントです。
 
-**リクエスト (`RouteRequestModel`)**:
-`context`（文字列）、`instruction`（文字列）、`choices`（文字列のリスト）、およびオプションの `temperature`（浮動小数点数）を含む JSON ボディが必要です。検証は Pydantic によって自動的に処理されます。
-
-**レスポンス (`RouteResponseModel`)**:
-`best_choice`、`best_letter`、`confidence`、`entropy`、および選択肢に対する確率的 `distribution`（分布）を含む、ルーターからの構造化データを返します。
-
-**エラー処理**:
-選択肢の数がモデルの `max_choices` を超えた場合、`400 Bad Request` が返されます。その他の内部障害（CUDA の OOM など）はキャッチされ、`500 Internal Server Error` として返されます。
+- **リクエストボディ (`RouteRequestModel`)**:
+  - `context` (文字列): 判断基準となる背景情報。
+  - `instruction` (文字列): 分類指示クエリ。
+  - `choices` (文字列リスト): 選択肢リスト（要素数は `max_choices` 以下）。
+  - `temperature` (浮動小数点数, 任意): ロジット温度係数（デフォルト: `1.0`）。
+- **レスポンス (`RouteResponseModel`)**:
+  - `best_choice` (文字列), `best_letter` (文字列), `confidence` (浮動小数点数), `entropy` (浮動小数点数), `distribution` (辞書型)。
+- **エラーハンドリング**:
+  - 提供された選択肢数が `max_choices` を超過した場合は `400 Bad Request` を返却します。
+  - 予期しない例外が発生した場合は、ログを記録した上で `500 Internal Server Error` を返却します。

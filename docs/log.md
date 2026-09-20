@@ -9,4 +9,5 @@
 * **Update**: `benchmarks/bench_profile.py`, `benchmarks/bench_scaling.py`, `benchmarks/test_robustness.py` の追加と RTX 3060 での実機検証。
 * **Revision**: すべてのドキュメントを大幅に拡充し、英語 (English) と日本語 (Japanese) の完全なバイリンガル形式 (Bilingual JP/EN) に改訂。`docs/raw` の参照を削除し、実際のソースコードを根拠とするように修正。
 * **Creation**: `benchmarks/eval_suite.py` および `benchmarks/data/eval_cases.json`（5大ドメイン50問）の構築と実機評価、`docs/references/eval_report.md` の発行。
+* **Tone & Phrasing Revision**: 全ドキュメントの文体を技術者向けの実直・客観的な記述に推敲。過大な表現や誇張を排除し、数式、アルゴリズム計算量、および実機測定データ（RTX 3060）に基づく客観的な記述に統一。
 

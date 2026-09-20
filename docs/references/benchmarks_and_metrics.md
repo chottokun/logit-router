@@ -1,11 +1,11 @@
 ---
 type: concept
 title: Benchmarks and Metrics / ベンチマークと評価指標
-description: Details of latency measurement, decomposition profiles, position bias, and OOD rejection / レイテンシ測定、分解プロファイル、位置バイアス、およびOOD拒絶評価手順の詳細
+description: Methodologies for GPU latency profiling, layer decomposition, position bias, and OOD detection / GPUレイテンシ計測、要因分解プロファイリング、位置バイアス検証、およびOOD検出手法
 status: stable
 generated:
   by: jules/agent
-  at: "2026-09-20T14:15:00Z"
+  at: "2026-09-20T15:00:00Z"
 tags:
   - references
   - benchmarks
@@ -13,64 +13,89 @@ tags:
 sources:
   - benchmarks/bench_latency.py
   - benchmarks/bench_profile.py
+  - benchmarks/test_robustness.py
 ---
 
 # Benchmarks and Metrics / ベンチマークと評価指標
 
 **[English]**
-Validating an ultra-low latency system requires specialized profiling techniques. Standard Python timers are insufficient for GPU-bound operations. This document outlines our rigorous benchmarking methodologies and the robustness metrics used to evaluate the Logit Router.
+Evaluating a low-latency routing architecture requires measuring GPU execution time while accounting for asynchronous kernel launches. This document details the profiling methodologies and validation metrics used to assess inference latency, layer decomposition, position bias, and out-of-distribution (OOD) rejection.
 
 **[Japanese]**
-超低レイテンシシステムを検証するには、特殊なプロファイリング手法が必要です。標準の Python タイマーは、GPU バウンドな操作には不十分です。このドキュメントでは、Logit Router を評価するために使用される厳密なベンチマーク手法と堅牢性指標について概説します。
+低遅延ルーティングアーキテクチャの評価では、非同期カーネル実行を考慮したGPU実行時間の正確な計測が求められます。本ドキュメントでは、推論遅延のプロファイリング手法、各処理層の要因分解、選択肢順序に対する位置バイアス検証、および分布外（OOD）入力の検出評価指標について記述します。
 
-## CUDA Event Precision Latency Measurement / CUDAイベントによる精密なレイテンシ計測
+## Latency Measurement Methodology / レイテンシ計測手法
 
 **[English]**
-When using PyTorch with CUDA, operations are asynchronous; the CPU dispatches kernels to the GPU and continues execution without waiting for them to finish. Using Python's `time.perf_counter()` around PyTorch code only measures the kernel launch overhead, not the actual execution time. 
-To achieve accurate profiling, we utilize `torch.cuda.Event(enable_timing=True)`. We record a `start_event`, run the inference, record an `end_event`, and then explicitly call `torch.cuda.synchronize()` to wait for the GPU to finish before calculating the elapsed time via `start_event.elapsed_time(end_event)`.
+PyTorch operations targeting CUDA devices are executed asynchronously; host code dispatches kernels to the stream and returns immediately. Relying on host-side wall clocks such as `time.perf_counter()` captures only kernel launch overhead rather than compute completion.
+Accurate profiling is performed using `torch.cuda.Event(enable_timing=True)`:
+1. Warmup runs are executed to initialize GPU memory allocations and JIT compile any dynamic elements.
+2. A `start_event` is placed onto the active stream.
+3. The forward pass is invoked.
+4. An `end_event` is placed on the stream, followed by explicit stream synchronization (`torch.cuda.synchronize()`).
+5. Execution duration is retrieved via `start_event.elapsed_time(end_event)`.
 
 **[Japanese]**
-CUDA を搭載した PyTorch を使用する場合、操作は非同期です。CPU はカーネルを GPU にディスパッチし、それらの終了を待たずに実行を継続します。PyTorch コードの周囲で Python の `time.perf_counter()` を使用すると、実際の実行時間ではなく、カーネルの起動オーバーヘッドのみが測定されます。
-正確なプロファイリングを実現するために、`torch.cuda.Event(enable_timing=True)` を利用します。`start_event` を記録し、推論を実行し、`end_event` を記録してから、明示的に `torch.cuda.synchronize()` を呼び出して GPU の終了を待機し、`start_event.elapsed_time(end_event)` を介して経過時間を計算します。
+CUDAデバイスを対象とするPyTorchの処理は非同期に実行され、ホスト側のコードはカーネルをストリームに投入すると即座に制御を戻します。そのため、ホスト側の壁時計（`time.perf_counter()` 等）による計測では、カーネルの投入オーバーヘッドのみが反映され、計算完了までの実時間は計測されません。
+正確な時間計測のため、`torch.cuda.Event(enable_timing=True)` を使用します：
+1. メモリ確保や動的要素の初期化を完了させるため、ウォームアップ反復を実行します。
+2. アクティブなストリームに `start_event` を配置します。
+3. フォワードパスを実行します。
+4. ストリームに `end_event` を配置し、明示的に `torch.cuda.synchronize()` を呼び出してGPU側の処理完了を同期します。
+5. `start_event.elapsed_time(end_event)` を通じて経過時間を取得します。
 
-## Factor Decomposition Profile / 要因分解プロファイル
+## Factor Decomposition Profile / 要因分解プロファイリング
 
 **[English]**
-By instrumenting different phases of the routing process (`bench_profile.py`), we can decompose the latency into distinct bottlenecks:
-1. **Tokenization & Tensor Transfer**: CPU-based text tokenization and transferring `input_ids` to the GPU.
-2. **Backbone Forward Pass**: The core prefill computation through the Transformer blocks.
-3. **Sliced LM-Head MatMul**: The optimized projection over the select tokens.
-4. **Softmax, Entropy & Post-proc**: Final mathematical operations and dictionary construction.
+The benchmark suite (`bench_profile.py`) divides inference execution into four isolated stages:
+1. **Tokenization and Host-to-Device Copy**: Encoding prompt text on CPU and moving input tensors to device memory.
+2. **Backbone Forward Pass**: Transformer block prefill computation generating hidden state representations.
+3. **Sliced LM-Head Projection**: Linear projection applied exclusively to candidate token indices.
+4. **Post-Processing & Metrics**: Softmax computation, Shannon entropy calculation, and Python dictionary assembly.
 
-*Typical Profile Result:*
-The Backbone Forward Pass overwhelmingly dominates the execution time (often >98%), while the Sliced LM-Head optimization reduces the classification overhead to a mere ~0.16%.
+*Measured Baseline (NVIDIA RTX 3060, Qwen2.5-0.5B-Instruct, Sequence Length ~135):*
+- Backbone Forward Pass: $27.97\,\text{ms}$ ($97.56\%$)
+- Sliced LM-Head: $0.05\,\text{ms}$ ($0.16\%$)
+- Tokenization & Transfer: $0.46\,\text{ms}$ ($1.62\%$)
+- Post-processing: $0.19\,\text{ms}$ ($0.66\%$)
+
+The data confirms that the final classification layer represents a negligible fraction of overall execution time.
 
 **[Japanese]**
-ルーティングプロセスのさまざまなフェーズ（`bench_profile.py`）を計測することで、レイテンシを明確なボトルネックに分解できます：
-1. **トークナイズとテンソル転送**: CPU ベースのテキストトークナイズと、`input_ids` の GPU への転送。
-2. **バックボーン・フォワードパス**: Transformer ブロックを通るコアな Prefill 計算。
-3. **Sliced LM-Head MatMul**: 選択されたトークンに対する最適化された射影。
-4. **Softmax、エントロピー、および後処理**: 最終的な数学的演算と辞書の構築。
+プロファイル測定スクリプト（`bench_profile.py`）では、推論処理を以下の4段階に分離して計測します：
+1. **トークナイズおよびホスト-デバイス間転送**: CPUでのテキストトークナイズと、入力テンソルのGPUメモリへの転送。
+2. **バックボーン・フォワードパス**: TransformerブロックによるPrefill計算（隠れ状態の生成）。
+3. **Sliced LM-Head 射影**: 選択肢インデックスに限定した線形層の射影計算。
+4. **後処理および指標計算**: ソフトマックス計算、シャノンエントロピー算出、結果オブジェクトの生成。
 
-*典型的なプロファイル結果:*
-バックボーン・フォワードパスが実行時間を圧倒的に支配し（多くの場合 98% 以上）、Sliced LM-Head の最適化により分類のオーバーヘッドはわずか約 0.16% に削減されます。
+*実機計測例 (NVIDIA RTX 3060, Qwen2.5-0.5B-Instruct, 系列長 約135トークン):*
+- バックボーン・フォワードパス: $27.97\,\text{ms}$ ($97.56\%$)
+- Sliced LM-Head: $0.05\,\text{ms}$ ($0.16\%$)
+- トークナイズおよび転送: $0.46\,\text{ms}$ ($1.62\%$)
+- 後処理: $0.19\,\text{ms}$ ($0.66\%$)
 
-## Position Bias Tolerance / 位置バイアス耐性
+実測データより、最終分類層の演算オーバーヘッドは全体の極小部分にとどまることが確認されます。
+
+## Position Bias Evaluation / 位置バイアス評価
 
 **[English]**
-Large Language Models exhibit a known "position bias" (or order effect), where the model may unfairly favor choices placed at the very beginning (Option A) or the very end of a list, regardless of semantic correctness. 
-The Logit Router mitigates this via strict instruction framing ("Select the single best choice based strictly on the context.") and relies on the inherent capability of modern instruction-tuned models like Qwen2.5. Further robustness can be evaluated by shuffling choices and ensuring the model consistently selects the semantically correct option rather than a fixed position.
+Instruction-tuned language models can exhibit sensitivity to candidate order, potentially showing preferential selection toward earlier options (`A`) regardless of context.
+To measure position bias, `test_robustness.py` generates all permutations of candidate lists for evaluation cases and calculates selection consistency:
+$$\text{Consistency} = \frac{\text{Number of permutations where the semantic winner remains identical}}{\text{Total permutations}}$$
+A consistency rate near $100\%$ indicates that candidate order does not shift the argmax decision.
 
 **[Japanese]**
-大規模言語モデルには、既知の「位置バイアス（順序効果）」が存在します。これは、意味の正しさに関係なく、リストの最初（オプションA）または最後に配置された選択肢をモデルが不当に好む可能性がある現象です。
-Logit Router は、厳密な指示のフレーミング（「コンテキストに厳密に基づいて最適な選択肢を1つ選択してください」）によってこれを軽減し、Qwen2.5 のような最新の Instruction-Tuned モデルの固有の機能に依存しています。さらなる堅牢性は、選択肢をシャッフルし、モデルが固定された位置ではなく、意味的に正しいオプションを一貫して選択することを確認することで評価できます。
+指示調整済み言語モデルは、選択肢の提示順序に対して偏り（先頭の選択肢 `A` が選択されやすい等）を示す場合があります。
+位置バイアスを定量化するため、`test_robustness.py` では候補リストの順列（Permutation）を全パターン生成し、選択の一貫性（Consistency）を測定します：
+$$\text{Consistency} = \frac{\text{意味的に同一の選択肢が最上位に選ばれた順列数}}{\text{総順列数}}$$
+一貫性が $100\%$ に近い場合、提示順序の変化が判定結果に影響を与えていないことを示します。
 
-## OOD (Out-of-Distribution) Rejection Evaluation / OOD (分布外) 拒絶評価手順
+## Out-of-Distribution (OOD) Rejection Evaluation / 分布外 (OOD) 入力検出評価
 
 **[English]**
-Handling queries that do not match any available choice (OOD inputs) is critical for routing. Instead of hallucinating a forced choice, the Logit Router relies on Shannon Entropy and confidence margins. 
-An OOD input causes the probability distribution across A, B, and C to flatten out (e.g., [0.33, 0.34, 0.33]), resulting in a high entropy score. By setting an `entropy_threshold` (e.g., 0.9), the system can cleanly reject the input and hand it off to a fallback mechanism or return an error to the user, ensuring deterministic and safe behavior.
+Queries that do not fit any of the provided categories should be flagged for rejection rather than matched to an incorrect choice.
+The router uses Shannon entropy $H$ as an uncertainty signal. On in-domain test cases, the probability distribution is concentrated (low $H$, mean $\approx 0.014$). On deliberately mismatched out-of-distribution queries, probability mass spreads across candidates, resulting in elevated entropy (mean $\approx 0.834$). Applying an entropy cutoff threshold (typically $0.5 \le H \le 0.6$) separates clear classifications from ambiguous cases.
 
 **[Japanese]**
-利用可能な選択肢のいずれにも一致しないクエリ（OOD入力）を処理することは、ルーティングにとって非常に重要です。Logit Router は、強制的な選択をハルシネーション（幻覚）させるのではなく、シャノンエントロピーと確信度のマージンに依存します。
-OOD 入力は、A、B、C 全体の確率分布を平坦化させ（例：[0.33, 0.34, 0.33]）、高いエントロピースコアをもたらします。`entropy_threshold`（例：0.9）を設定することで、システムは入力をきれいに拒絶し、フォールバックメカニズムに引き継ぐか、ユーザーにエラーを返すことができ、決定論的で安全な動作を保証します。
+提示されたどの候補カテゴリにも合致しない入力クエリは、誤った候補へ割り振られる前に検出・除外される必要があります。
+本ルーターでは、不確実性の指標としてシャノンエントロピー $H$ を用います。ドメイン内の正当な入力では特定候補に確率が集中するため低エントロピー（平均値 $\approx 0.014$）となりますが、意図的に無関係なクエリを与えた場合は確率が分散し、エントロピーが上昇します（平均値 $\approx 0.834$）。適切なエントロピー閾値（通常 $0.5 \le H \le 0.6$）を設定することで、明確な分類と曖昧な入力を分離できます。

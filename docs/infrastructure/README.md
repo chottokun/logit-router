@@ -16,19 +16,19 @@ sources:
 # Infrastructure Overview / インフラストラクチャ概要
 
 **[English]**
-The Infrastructure layer is responsible for deploying the Logit Router as a highly available, ultra-low latency Web API. By utilizing modern asynchronous Python frameworks, the system maximizes throughput and minimizes request overhead.
+The Infrastructure layer provides an HTTP serving environment for the Logit Router using FastAPI and Uvicorn. By keeping model instances resident in memory, the server minimizes per-request dispatch latency.
 
 **[Japanese]**
-インフラストラクチャ層は、Logit Router を高可用性かつ超低レイテンシの Web API としてデプロイする役割を担います。最新の非同期 Python フレームワークを利用することで、システムはスループットを最大化し、リクエストのオーバーヘッドを最小限に抑えます。
+インフラストラクチャ層は、FastAPI および Uvicorn を用いて Logit Router を HTTP サービスとして提供します。モデルインスタンスをメモリ上に常駐させることで、リクエストごとのディスパッチ遅延を最小化します。
 
 ## Web Server and API / WebサーバーとAPI
 
 **[English]**
-The core routing logic is exposed via a robust FastAPI and Uvicorn stack. A key architectural decision is the stateful management of the Hugging Face model to avoid repeated disk reads or GPU memory allocations. 
+The routing API is implemented with FastAPI. Model weights are managed statefully via lifespan context handlers to avoid redundant storage reads or GPU allocation overhead across requests.
 
-For deep implementation details on memory residency and inference endpoints, see the [FastAPI Server](fastapi_server.md) documentation.
+For implementation details on memory residency and inference endpoints, see the [FastAPI Server](fastapi_server.md) documentation.
 
 **[Japanese]**
-コアとなるルーティングロジックは、堅牢な FastAPI と Uvicorn スタックを介して公開されます。重要なアーキテクチャ上の決定は、Hugging Face モデルのステートフルな管理であり、これによりディスク読み取りや GPU メモリ割り当ての繰り返しを回避します。
+ルーティングAPIは FastAPI により実装されています。リクエスト処理ごとのストレージ読み込みやGPUメモリ確保オーバーヘッドを回避するため、モデルの重みはライフスパンコンテキストを通じて常駐管理されます。
 
-メモリの常駐化と推論エンドポイントに関する深い実装の詳細については、[FastAPI Server](fastapi_server.md) ドキュメントを参照してください。
+メモリ常駐化および推論エンドポイントの実装仕様については [FastAPI Server (FastAPI サーバー)](fastapi_server.md) を参照してください。

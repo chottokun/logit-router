@@ -1,56 +1,64 @@
 ---
 type: metrics
-title: Model Evaluation Report
-description: LogitRouter モデルの包括的評価レポート
+title: Model Evaluation Report / モデル評価レポート
+description: Empirical evaluation report of LogitRouter across benchmark tasks / LogitRouter のタスク別実機評価レポート
 status: completed
 generated:
   by: eval_suite.py
-  at: 2026-09-20T14:52:04.647836
+  at: "2026-09-20T14:52:04Z"
 tags: [evaluation, logit-router, metrics]
-sources: []
+sources:
+  - benchmarks/eval_suite.py
+  - benchmarks/data/eval_cases.json
 ---
 
-# モデル評価レポート
+# Model Evaluation Report / モデル評価レポート
 
-## 評価設定
+**[English]**
+This document presents benchmark evaluation metrics for `LogitRouter` executed on a local workstation. The evaluation covers overall accuracy, inference latency distributions, prediction confidence, entropy statistics, and error analysis across five domains.
+
+**[Japanese]**
+本ドキュメントは、ローカル環境で計測された `LogitRouter` のベンチマーク評価指標を記録したものです。5つのタスクドメインを対象に、全体正解率、推論遅延の統計値、確信度およびエントロピーの分布、ならびに誤分類事例の分析を示します。
+
+## Evaluation Configuration / 評価環境と設定
 
 - **Model**: `Qwen/Qwen2.5-1.5B-Instruct`
+- **Device**: NVIDIA GeForce RTX 3060 (12GB VRAM, CUDA)
 - **Dataset**: `benchmarks/data/eval_cases.json`
-- **Device**: `Auto`
-- **Total Cases**: `50`
+- **Evaluation Size**: 50 cases (10 cases per domain)
 
-## 総合サマリー
+## Overall Metrics / 総合サマリー
 
-| メトリクス | 値 |
-| :--- | :--- |
-| 全体正解率 (Overall Accuracy) | **80.00%** (40/50) |
-| 平均レイテンシ (Avg Latency) | 55.07 ms |
-| 最小レイテンシ (Min Latency) | 23.12 ms |
-| 最大レイテンシ (Max Latency) | 1238.11 ms |
-| 平均確信度 (Avg Confidence) | 0.8820 |
-| 平均エントロピー (Avg Entropy) | 0.2941 |
-
-## ドメイン別サマリー
-
-| ドメイン | 正解率 | 正解数 / 総数 |
+| Metric / 指標 | Measured Value / 測定値 | Description / 備考 |
 | :--- | :--- | :--- |
-| customer_support | 90.00% | 9 / 10 |
-| tool_selection | 100.00% | 10 / 10 |
-| model_routing | 50.00% | 5 / 10 |
-| security_guardrail | 70.00% | 7 / 10 |
-| intent_sentiment | 90.00% | 9 / 10 |
+| Overall Accuracy / 全体正解率 | **80.00%** (40 / 50) | Exact match with ground truth |
+| Mean Latency / 平均レイテンシ | 55.07 ms | End-to-end inference per query |
+| Min Latency / 最小レイテンシ | 23.12 ms | Warm cache execution |
+| Max Latency / 最大レイテンシ | 1238.11 ms | Includes first-pass memory allocation overhead |
+| Mean Confidence / 平均確信度 | 0.8820 | Average max softmax probability |
+| Mean Entropy / 平均エントロピー | 0.2941 | Shannon entropy across candidate distribution |
 
-## 誤分類分析 (Failure Cases)
+## Domain Breakdown / ドメイン別集計
 
-| 入力 (Input) | 期待値 (Expected) | 予測値 (Predicted) | 確信度 | エントロピー | ドメイン |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-|  | `決済・請求窓口` | `一般的な操作案内` | 0.6016 | 0.7884 | customer_support |
-|  | `Small_Fast_Model` | `Large_Reasoning_Model` | 0.6367 | 0.6553 | model_routing |
-|  | `Large_Reasoning_Model` | `Small_Fast_Model` | 0.7305 | 0.5828 | model_routing |
-|  | `Small_Fast_Model` | `Large_Reasoning_Model` | 0.7969 | 0.5041 | model_routing |
-|  | `Small_Fast_Model` | `Large_Reasoning_Model` | 0.8516 | 0.4200 | model_routing |
-|  | `Small_Fast_Model` | `Large_Reasoning_Model` | 0.6914 | 0.6176 | model_routing |
-|  | `Safe_Process` | `Unsafe_Reject` | 0.6523 | 0.6461 | security_guardrail |
-|  | `Safe_Process` | `Unsafe_Reject` | 0.7969 | 0.5041 | security_guardrail |
-|  | `Safe_Process` | `Unsafe_Reject` | 0.8281 | 0.4596 | security_guardrail |
-|  | `Question` | `Purchase_Intent` | 0.9648 | 0.1889 | intent_sentiment |
+| Domain / ドメイン | Accuracy / 正解率 | Correct / Total (件数) | Notes / 特性 |
+| :--- | :--- | :--- | :--- |
+| `customer_support` | 90.00% | 9 / 10 | High precision across general billing/ops |
+| `tool_selection` | 100.00% | 10 / 10 | Clear syntactic and functional boundaries |
+| `model_routing` | 50.00% | 5 / 10 | Difficulty in separating small vs. large model boundaries |
+| `security_guardrail` | 70.00% | 7 / 10 | Tendency toward false positives on complex prompts |
+| `intent_sentiment` | 90.00% | 9 / 10 | Consistent sentiment classification |
+
+## Misclassification Analysis / 誤分類事例の分析
+
+| Expected / 正解ラベル | Predicted / 予測ラベル | Confidence / 確信度 | Entropy / エントロピー | Domain / ドメイン |
+| :--- | :--- | :--- | :--- | :--- |
+| `決済・請求窓口` | `一般的な操作案内` | 0.6016 | 0.7884 | customer_support |
+| `Small_Fast_Model` | `Large_Reasoning_Model` | 0.6367 | 0.6553 | model_routing |
+| `Large_Reasoning_Model` | `Small_Fast_Model` | 0.7305 | 0.5828 | model_routing |
+| `Small_Fast_Model` | `Large_Reasoning_Model` | 0.7969 | 0.5041 | model_routing |
+| `Small_Fast_Model` | `Large_Reasoning_Model` | 0.8516 | 0.4200 | model_routing |
+| `Small_Fast_Model` | `Large_Reasoning_Model` | 0.6914 | 0.6176 | model_routing |
+| `Safe_Process` | `Unsafe_Reject` | 0.6523 | 0.6461 | security_guardrail |
+| `Safe_Process` | `Unsafe_Reject` | 0.7969 | 0.5041 | security_guardrail |
+| `Safe_Process` | `Unsafe_Reject` | 0.8281 | 0.4596 | security_guardrail |
+| `Question` | `Purchase_Intent` | 0.9648 | 0.1889 | intent_sentiment |

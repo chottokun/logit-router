@@ -1,11 +1,11 @@
 ---
 type: concept
 title: Routing Primitives / ルーティング・プリミティブ
-description: Description of routing primitives like RouteRequest, RouteResult, and FallbackRouter / RouteRequest、RouteResult、FallbackRouterなどのルーティングプリミティブの説明
+description: Specification of routing data structures, uncertainty metrics, and fallback criteria / ルーティングのデータ構造、不確実性評価指標、およびフォールバック基準の技術仕様
 status: stable
 generated:
   by: jules/agent
-  at: "2026-09-20T14:15:00Z"
+  at: "2026-09-20T15:00:00Z"
 tags:
   - domain
   - primitives
@@ -18,59 +18,63 @@ sources:
 # Routing Primitives / ルーティング・プリミティブ
 
 **[English]**
-The routing primitives form the foundation of how the Logit Router understands inputs and articulates its decisions. By deeply integrating confidence and entropy into the result schema, the system provides a robust mechanism for handling uncertain or out-of-distribution inputs.
+The routing subsystem relies on standardized data schemas to represent incoming requests and outgoing decisions. To support post-routing validation, outputs include both candidate probability distributions and calculated entropy values.
 
 **[Japanese]**
-ルーティング・プリミティブは、Logit Router が入力をどのように理解し、決定をどのように表現するかの基盤を形成します。確信度とエントロピーを結果スキーマに深く統合することで、システムは不確実な入力や分布外（OOD）の入力を処理するための堅牢なメカニズムを提供します。
+ルーティングサブシステムは、入力リクエストおよび判定結果を標準化されたデータスキーマで扱います。ルーティング後の検証や分岐処理を可能にするため、出力には各候補の確率分布に加え、計算された情報エントロピーが含まれます。
 
-## RouteRequest and RouteResult / RouteRequest と RouteResult
+## Data Schemas: RouteRequest and RouteResult / データスキーマ: RouteRequest と RouteResult
 
 **[English]**
-The `RouteRequest` acts as the primary input schema. It consists of:
-- `context`: The foundational information or document the router must base its decision on.
-- `instruction`: The specific task or query.
-- `choices`: An arbitrary list of strings representing the possible categories or actions.
-- `temperature`: Modifies the logits before the softmax operation (default is 1.0).
+The `RouteRequest` object encapsulates input arguments:
+- `context`: Background text or document snippet providing grounding for the routing decision.
+- `instruction`: Task description or user query to be categorized.
+- `choices`: List of candidate target categories (strings).
+- `temperature`: Scaling factor applied to logits prior to softmax normalization (default: `1.0`).
 
-The `RouteResult` is the output schema. It returns:
-- `best_choice`: The selected string from the choices.
-- `best_letter`: The mapped token (e.g., A, B, C).
-- `confidence`: The probability $P$ of the top choice.
-- `entropy`: A calculated metric representing uncertainty.
-- `distribution`: A dictionary mapping each letter to its probability.
+The `RouteResult` object contains the classification outputs:
+- `best_choice`: Candidate string associated with the highest logit.
+- `best_letter`: Assigned letter index (`A`, `B`, `C`, etc.).
+- `confidence`: Softmax probability $P(\text{best\_choice})$ among the evaluated choices.
+- `entropy`: Shannon entropy computed over the candidate probability distribution.
+- `distribution`: Mapping from candidate letter to normalized probability.
 
 **[Japanese]**
-`RouteRequest` は主要な入力スキーマとして機能します。以下で構成されます：
-- `context`: ルーターが判断の基準としなければならない基礎情報やドキュメント。
-- `instruction`: 具体的なタスクやクエリ。
-- `choices`: 可能なカテゴリやアクションを表す任意の文字列リスト。
-- `temperature`: ソフトマックス操作の前にロジットを変更するパラメータ（デフォルトは 1.0）。
+`RouteRequest` オブジェクトは以下の入力引数を保持します：
+- `context`: ルーティング判断の根拠となる背景情報または参照テキスト。
+- `instruction`: 分類対象となるタスク指示またはユーザーの入力クエリ。
+- `choices`: 分類先候補となる文字列のリスト。
+- `temperature`: ソフトマックス正規化前にロジットをスケーリングする温度パラメータ（デフォルト値: `1.0`）。
 
-`RouteResult` は出力スキーマです。以下を返します：
-- `best_choice`: 選択肢から選ばれた文字列。
-- `best_letter`: マッピングされたトークン（例：A、B、C）。
-- `confidence`: 最上位の選択肢の確率 $P$。
-- `entropy`: 不確実性を表す計算された指標。
-- `distribution`: 各文字をその確率にマッピングする辞書。
+`RouteResult` オブジェクトは分類結果を保持します：
+- `best_choice`: 最も高いロジット値を得た候補文字列。
+- `best_letter`: 該当するインデックス文字（`A`, `B`, `C` など）。
+- `confidence`: 評価対象選択肢内における最上位候補のソフトマックス確率 $P(\text{best\_choice})$。
+- `entropy`: 候補確率分布から算出されたシャノンエントロピー。
+- `distribution`: 各候補文字と正規化された確率値の対応辞書。
 
-## Entropy and Confidence / エントロピーと確信度
+## Uncertainty Metrics: Confidence and Entropy / 不確実性の評価: 確信度とエントロピー
 
 **[English]**
-- **Confidence**: This is simply the highest probability from the Softmax function over the subset of choice logits. A high confidence means the model strongly prefers one option over the others.
-- **Entropy ($H$)**: We compute the Shannon Entropy over the selected probabilities:
-  $H = -\sum_{i=1}^{K} P(i) \log_e P(i)$
-  High entropy indicates the probability mass is distributed evenly across multiple choices. This usually means the model is unsure or the prompt is ambiguous.
+- **Confidence ($P_{\max}$)**: Defined as $\max_i P(i)$ where $P(i) = \frac{\exp(z_i / T)}{\sum_j \exp(z_j / T)}$ over candidate logits $z$. High values indicate that the model exhibits a clear preference for a specific candidate.
+- **Shannon Entropy ($H$)**: Computed over the $K$ normalized candidate probabilities:
+  $$H = -\sum_{i=1}^{K} P(i) \ln P(i)$$
+  When probabilities are uniformly distributed across candidates ($P(i) \approx 1/K$), $H$ approaches its maximum $\ln(K)$. Conversely, when one candidate dominates, $H \approx 0$.
 
 **[Japanese]**
-- **確信度 (Confidence)**: これは単に、選択肢のロジットのサブセットに対するソフトマックス関数からの最も高い確率です。確信度が高いということは、モデルが他の選択肢よりも一つの選択肢を強く好んでいることを意味します。
-- **エントロピー ($H$)**: 選択された確率に対してシャノンエントロピーを計算します：
-  $H = -\sum_{i=1}^{K} P(i) \log_e P(i)$
-  エントロピーが高い場合、確率の質量が複数の選択肢に均等に分散していることを示します。これは通常、モデルが確信を持てないか、プロンプトが曖昧であることを意味します。
+- **確信度 ($P_{\max}$)**: 候補ロジット $z$ に対するソフトマックス確率の最大値 $\max_i P(i)$（ここで $P(i) = \frac{\exp(z_i / T)}{\sum_j \exp(z_j / T)}$）として定義されます。値が高いほど、モデルの出力確率が特定の候補に集中していることを示します。
+- **シャノンエントロピー ($H$)**: $K$ 個の正規化確率に基づいて算出されます：
+  $$H = -\sum_{i=1}^{K} P(i) \ln P(i)$$
+  各候補の確率が均等（$P(i) \approx 1/K$）に近い場合、$H$ は最大値 $\ln(K)$ に漸近します。単一の候補に確率が集中している場合は $H \approx 0$ となります。
 
-## Fallback Logic / フォールバックロジック
+## Fallback Routing / フォールバックルーティング
 
 **[English]**
-The `RouteResult` schema includes helper methods like `is_confident(threshold=0.7)` and `needs_fallback(entropy_threshold=0.9)`. When entropy is above a certain threshold, or the margin between the top two choices is small, a fallback system can be triggered. A Fallback Router might use full autoregressive generation (Chain-of-Thought) or route the request to a larger, more capable model (e.g., GPT-4 or Claude 3.5 Sonnet) at the cost of higher latency.
+The schema provides utility methods `is_confident(threshold=0.7)` and `needs_fallback(entropy_threshold=0.9)` to support automated pipeline routing:
+- When entropy exceeds a defined threshold or confidence falls below target, requests can be routed to an auxiliary handler.
+- Auxiliary strategies include multi-step autoregressive generation (e.g., Chain-of-Thought) or dispatching to larger model endpoints when latency constraints permit.
 
 **[Japanese]**
-`RouteResult` スキーマには、`is_confident(threshold=0.7)` や `needs_fallback(entropy_threshold=0.9)` などのヘルパーメソッドが含まれています。エントロピーが特定のしきい値を超えている場合、または上位2つの選択肢の差（マージン）が小さい場合、フォールバックシステムをトリガーできます。フォールバックルーターは、完全な自己回帰生成（Chain-of-Thought）を使用したり、よりレイテンシが高くなることを代償として、より大規模で高性能なモデル（GPT-4 や Claude 3.5 Sonnet など）にリクエストをルーティングしたりすることができます。
+パイプライン処理との連携のため、スキーマには `is_confident(threshold=0.7)` や `needs_fallback(entropy_threshold=0.9)` などの判定メソッドが用意されています：
+- エントロピーが閾値を超過した場合や確信度が基準値を下回った場合、後続の補助ハンドラへリクエストを分岐させることができます。
+- 補助ハンドラとしては、自己回帰による多段生成（Chain-of-Thought等）の実行や、許容レイテンシに応じてより大規模なモデルへのフォールバックディスパッチが選択されます。

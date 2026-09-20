@@ -16,23 +16,23 @@ sources:
 # Architecture Overview / アーキテクチャ概要
 
 **[English]**
-The Logit Router leverages a highly optimized single-forward-pass prefill to extract probabilities for dynamic routing, deliberately bypassing the traditional autoregressive generation phase. This section outlines the structural foundations and primary optimizations that allow the system to achieve ultra-low latency while maintaining robust routing accuracy.
+The Logit Router leverages a single-forward-pass prefill to extract probabilities for dynamic routing, avoiding autoregressive generation loops. This section outlines the architecture and optimizations designed to minimize inference latency while maintaining classification accuracy.
 
 **[Japanese]**
-Logit Router は、高度に最適化された単一フォワードパス（Prefill）を活用し、従来の自己回帰的な生成フェーズを意図的にバイパスすることで、動的ルーティングのための確率を抽出します。このセクションでは、システムが堅牢なルーティング精度を維持しながら超低レイテンシを実現するための構造的基盤と主要な最適化について概説します。
+Logit Router は、プロンプト末尾の単一フォワードパス（Prefillフェーズ）から選択肢確率を抽出し、自己回帰ループをバイパスしてルーティングを行います。本セクションでは、分類精度を維持しながら推論遅延を最小化するための設計および最適化手法について概説します。
 
 ## Core Components / 主要コンポーネント
 
 **[English]**
-1. **Single Forward Pass Extraction**: Avoids sequential token generation by fetching the logits of the final prompt token.
-2. **Sliced LM-Head**: Reduces matrix multiplication cost by slicing the LM-Head to compute only the necessary option tokens.
-3. **A/B/C Index Mapping**: Simplifies semantic outputs into deterministic character classes for fast inference.
+1. **Single Forward Pass Extraction**: Avoids sequential token generation by extracting logits exclusively from the final prompt token.
+2. **Sliced LM-Head**: Slices the language model projection layer to calculate logits only for active candidate tokens.
+3. **Index Mapping**: Maps arbitrary candidate descriptions to single-character indices (`A`, `B`, `C`, ...) to ensure deterministic single-token classification.
 
-For an in-depth understanding, refer to [Single Forward Pass Routing](single_forward_pass_routing.md).
+For details, refer to [Single Forward Pass Routing](single_forward_pass_routing.md).
 
 **[Japanese]**
-1. **単一フォワードパス抽出**: プロンプトの最後のトークンのロジットを取得することで、シーケンシャルなトークン生成を回避します。
-2. **Sliced LM-Head**: 必要な選択肢トークンのみを計算するために LM-Head をスライスし、行列積の計算コストを大幅に削減します。
-3. **A/B/Cインデックスマッピング**: 複雑な意味的出力（カテゴリ名など）を決定論的な単一文字クラス（A, B, C）にマッピングすることで推論を高速化します。
+1. **単一フォワードパス抽出**: プロンプト末尾トークンのロジットのみを抽出することで、逐次トークン生成を省略します。
+2. **Sliced LM-Head**: 言語モデルの最終射影層をスライスし、評価対象の選択肢トークンのみを行列積計算の対象とします。
+3. **インデックスマッピング**: 任意の候補ラベルを単一文字（`A`, `B`, `C`, ...）へ対応付け、単一トークンによる確定的分類を実現します。
 
-詳細については、[Single Forward Pass Routing](single_forward_pass_routing.md) を参照してください。
+技術仕様の詳細は [Single Forward Pass Routing (単一フォワードパスルーティング)](single_forward_pass_routing.md) を参照してください。

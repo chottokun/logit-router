@@ -15,10 +15,10 @@ sources: []
 # Logit Router Documentation / Logit Router ドキュメント
 
 **[English]**
-Welcome to the Logit Router documentation. This documentation is built according to the Open Knowledge Format (OKF) v0.2 structure. It provides comprehensive, highly-detailed explanations of the architecture, domain primitives, infrastructure, and benchmarks underlying the ultra-low latency LLM-based routing engine. 
+This documentation describes the Logit Router system conforming to the Open Knowledge Format (OKF) v0.2. It covers the system architecture, domain primitives, serving infrastructure, and empirical benchmark evaluations for logit-based routing.
 
 **[Japanese]**
-Logit Router のドキュメントへようこそ。このドキュメントは Open Knowledge Format (OKF) v0.2 の構造に従って構築されています。超低遅延のLLMベースのルーティングエンジンの基礎となるアーキテクチャ、ドメインプリミティブ、インフラストラクチャ、およびベンチマークに関する包括的かつ非常に詳細な説明を提供します。
+本ドキュメントは、Open Knowledge Format (OKF) v0.2 に準拠した Logit Router の仕様書です。ロジット抽出を用いたルーティングエンジンのアーキテクチャ、ドメインモデル、インフラ構成、および実測ベンチマーク評価手法を記述します。
 
 ## Directory Structure / ディレクトリ構成
 
