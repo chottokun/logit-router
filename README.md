@@ -11,8 +11,28 @@ Ultra-low latency LLM-based routing via single forward pass logit extraction.
 2. Backbone の Prefill フォワードパス1回で末尾隠れ状態を取得（KV キャッシュ無効化で省メモリ化）
 3. 事前キャッシュした LM-Head 重みとの内積で候補の確率を直接算出（Sliced LM-Head により全語彙射影をバイパス）
 
-図解（テキスト）:
-Input → Prompt Build (A/B/C mapping) → Tokenize → Single Forward Pass → Last Hidden State → Sliced MatMul → Softmax → Result
+```mermaid
+flowchart LR
+    subgraph InputPhase["1. 入力とプロンプト構築"]
+        In["入力<br>(Context + Task)"] --> Map["A/B/C マッピング<br>(BPE/語頭空白正規化)"]
+        Map --> Tok["Tokenize<br>(Chat Template適用)"]
+    end
+
+    subgraph PrefillPhase["2. 単一フォワードパス (Prefill)"]
+        Tok --> Fwd["Backbone Forward Pass<br>(use_cache=False / KVキャッシュ無効)"]
+        Fwd --> LastH["末尾トークンの隠れ状態<br>h_last ∈ ℝ^(1 × d)"]
+    end
+
+    subgraph SlicedPhase["3. Sliced LM-Head 射影"]
+        LastH --> Sliced["Sliced MatMul<br>W_sliced ∈ ℝ^(K × d)<br>(全語彙射影をバイパス)"]
+        Sliced --> Softmax["Softmax & 不確実性計算<br>(Confidence, Entropy)"]
+        Softmax --> Out["RouteResult<br>(判定結果・確率分布)"]
+    end
+
+    style InputPhase fill:#f8f9fa,stroke:#dee2e6,stroke-width:1px
+    style PrefillPhase fill:#e3f2fd,stroke:#90caf9,stroke-width:1px
+    style SlicedPhase fill:#e8f5e9,stroke:#a5d6a7,stroke-width:1px
+```
 
 ## Features
 - **単一フォワードパス（Prefillのみ）**: 逐次デコードループを完全バイパスし、通常生成（`model.generate()`）比で 1.6倍〜5.8倍（Gemma 4 で 5.78倍）高速化
