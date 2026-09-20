@@ -27,17 +27,14 @@ This document describes the architectural characteristics of integrating the Gem
 ## Vocabulary Scaling: 262K Vocab and Sliced LM-Head / 語彙スケーリング: 26.2万語と Sliced LM-Head
 
 **[English]**
-Gemma models feature an exceptionally large vocabulary of 256,000 to 262,144 tokens (`vocab_size = 262,144` in Gemma 4). In standard text generation, projecting the hidden state $h \in \mathbb{R}^d$ across the entire vocabulary requires $O(d \cdot 262,144)$ FLOPs and heavy memory streaming.
-
-Logit Router's **Sliced LM-Head** resolves this bottleneck. Because choices are mapped to deterministic token indices $\mathcal{C} = \{c_1, \dots, c_K\}$, only the corresponding rows $W[\mathcal{C}, :] \in \mathbb{R}^{K \times d}$ are evaluated.
-- For $K=3$, the effective computation is compressed by a factor of $3 / 262,144 \approx 0.0011\%$.
-- The larger the model's vocabulary, the greater the relative efficiency gains of the Sliced LM-Head compared to full projection.
+Gemma models feature an exceptionally large vocabulary of 256,128 tokens (Gemma 1/2/3) to 262,144 tokens (`vocab_size = 262,144` in Gemma 4). In standard text generation, projecting the hidden state $h \in \mathbb{R}^d$ across the entire vocabulary requires $O(d \cdot 262,144)$ FLOPs and heavy memory streaming.
+Because routing only classifies among $K$ predefined categories (typically $K \le 5$), the router pre-slices the LM-head weights to retain only rows corresponding to target choice tokens ($W_{\text{sliced}} = W[\mathcal{C}, :] \in \mathbb{R}^{K \times d}$).
+This cuts the linear projection workload by more than 99.998% (reducing it to approximately 0.0011% of the full projection cost), entirely removing the LM-head bottleneck.
 
 **[Japanese]**
-Gemma シリーズは、256,000〜262,144 トークンという極めて大きな語彙サイズを持ちます（Gemma 4 では `vocab_size = 262,144`）。標準的なテキスト生成では、隠れ状態 $h \in \mathbb{R}^d$ を全語彙へ射影するために $O(d \cdot 262,144)$ の演算と大量の重みメモリストリーミングが発生します。
-
-Logit Router の **Sliced LM-Head** はこのボトルネックを解消します。選択肢が確定的なトークンインデックス $\mathcal{C} = \{c_1, \dots, c_K\}$ にマッピングされるため、該当する行 $W[\mathcal{C}, :] \in \mathbb{R}^{K \times d}$ のみを評価します。
-- 選択肢数 $K=3$ の場合、計算量は全射影の約 $0.0011\%$ に圧縮されます。
+Gemma シリーズは、256,128 トークン（Gemma 1/2/3）〜 262,144 トークン（Gemma 4）という極めて大きな語彙サイズを持ちます。標準的なテキスト生成では、隠れ状態 $h \in \mathbb{R}^d$ を全語彙へ射影するために $O(d \cdot 262,144)$ の演算と大量の重みメモリストリーミングが発生します。
+本ルーティングでは $K$ 個の事前定義カテゴリ（通常 $K \le 5$）のみを判別するため、ルーターは選択肢トークンに対応する行のみを事前にスライスした重み行列（$W_{\text{sliced}} = W[\mathcal{C}, :] \in \mathbb{R}^{K \times d}$）を保持します。
+これにより、線形射影層の計算量は 99.998% 以上削減（全語彙射影の約 0.0011% に圧縮）され、LM-Head のボトルネックが完全に解消されます。
 - モデルの語彙数が大きければ大きいほど、全射影に対する Sliced LM-Head の計算量削減比率は高まります。
 
 ## Japanese Tokenization Characteristics / 日本語トークナイズの特性
@@ -61,3 +58,23 @@ In routing prefill, relative margins between choice logits determine classificat
 **[Japanese]**
 VRAM 制約のあるハードウェアでのデプロイを可能にするため、Logit Router は 4-bit および 8-bit の量子化ロードに対応しています。
 ルーティング判定においては選択肢ロジット間の相対的な大小関係（マージン）が重要となるため、微小な量子化誤差が argmax の選択結果を反転させるリスクは限定的であり、メモリ使用量を最大約 75% 削減しつつ判定の一貫性を維持できます。
+
+## Attention Architecture and Soft-Capping (Gemma 2 vs Gemma 4) / アテンション機構とソフトキャッピングの差異
+
+**[English]**
+A crucial architectural distinction exists between Gemma 2 and Gemma 4 regarding attention computation:
+1. **Gemma 2 Logit Soft-Capping**:
+   Gemma 2 enforces logit soft-capping at both the attention query-key product level ($50.0$) and the final output logits ($30.0$):
+   $$\text{Attention Logits} = \text{cap} \times \tanh\left(\frac{Q K^T}{\sqrt{d} \times \text{cap}}\right)$$
+   Because standard vanilla FlashAttention-2 kernels do not natively implement this attention-level $\tanh$ capping, running Gemma 2 with incompatible FlashAttention-2 backends can lead to degraded scores or numerical instability. Hence, PyTorch SDPA or `eager` mode is strictly recommended.
+2. **Gemma 4 Streamlined Architecture**:
+   In Gemma 4, attention-level soft-capping is removed, retaining soft-capping only at the final LM-Head projection. Consequently, Gemma 4 natively supports FlashAttention-2 and SDPA without custom kernel modifications, enabling optimal throughput and latency during prompt prefill.
+
+**[Japanese]**
+Gemma 2 と Gemma 4 の間には、アテンション演算における重要なアーキテクチャ上の差異が存在します：
+1. **Gemma 2 の二重ソフトキャッピング (Logit Soft-Capping)**:
+   Gemma 2 はアテンション計算の $QK^T$ ロジット（上限 $50.0$）と最終出力ロジット（上限 $30.0$）の双方に $\tanh$ によるソフトキャッピングを強制します：
+   $$\text{Attention Logits} = 50.0 \times \tanh\left(\frac{Q K^T}{\sqrt{d} \times 50.0}\right)$$
+   一般的な標準 FlashAttention-2 カーネルはこのアテンション内ソフトキャッピングに対応していないため、非対応環境で無理に FlashAttention を適用すると出力の劣化や数値不安定（NaN）を招くリスクがあります。そのため、Gemma 2 では PyTorch SDPA または `eager` バックエンドの適用が必須となります。
+2. **Gemma 4 のアーキテクチャ合理化**:
+   Gemma 4 ではアテンション層でのソフトキャッピングが廃止され、最終の LM-Head 出力層のみに集約されました。これにより、Gemma 4 は標準の `flash_attention_2` および PyTorch `sdpa` の高速カーネルを一切の精度劣化なくネイティブに活用することが可能となり、Prefill 計算の高速化を最大限に享受できます。

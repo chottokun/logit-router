@@ -38,24 +38,24 @@ In this routing architecture, candidates are mapped to single deterministic toke
 **[English]**
 A full language model head projects the hidden state $h_n \in \mathbb{R}^{d}$ to the entire vocabulary space $V$ via matrix multiplication:
 $$\mathbf{z} = h_n W^T, \quad W \in \mathbb{R}^{V \times d}$$
-For modern open models (such as Qwen2.5 where $V = 151,936$ or Gemma 2 where $V = 256,000$), computing the full projection incurs $O(d \cdot V)$ FLOPs and requires streaming the entire weight matrix $W$ from memory.
+For modern open models (such as Qwen2.5 where $V = 151,936$, Gemma 2 where $V = 256,128$, or Gemma 4 where $V = 262,144$), computing the full projection incurs $O(d \cdot V)$ FLOPs and requires streaming the entire weight matrix $W$ from memory.
 
 By slicing the weight matrix to include only the candidate token indices $\mathcal{C}$:
 $$W_{\text{sliced}} = W[\mathcal{C}, :] \in \mathbb{R}^{K \times d}$$
 the computation is reduced to:
 $$\mathbf{z}_{\text{sliced}} = h_n W_{\text{sliced}}^T$$
-This reduces the computational complexity and weight memory traffic of the final projection layer by a factor of $K / V$ ($K \ll V$). In profiling on an NVIDIA GeForce RTX 3060, the Sliced LM-Head execution takes approximately $0.05\,\text{ms}$ (around $0.16\%$ of total inference latency), confirming that the projection layer is no longer a bottleneck.
+This reduces the computational complexity and weight memory traffic of the final projection layer by a factor of $K / V$ ($K \ll V$, e.g., $3 / 262,144 \approx 0.0011\%$ for Gemma 4 or $3 / 151,936 \approx 0.0020\%$ for Qwen2.5). In profiling on an NVIDIA GeForce RTX 3060, the Sliced LM-Head execution takes approximately $0.05\,\text{ms}$ (around $0.16\%$ of total inference latency), confirming that the projection layer is no longer a bottleneck.
 
 **[Japanese]**
 通常の言語モデルヘッド（LM-Head）は、末尾の隠れ状態 $h_n \in \mathbb{R}^{d}$ を全語彙数 $V$ に対して行列積で射影します：
 $$\mathbf{z} = h_n W^T, \quad W \in \mathbb{R}^{V \times d}$$
-近年のオープンモデル（Qwen2.5 の $V = 151,936$ や Gemma 2 の $V = 256,000$ など）では、全語彙の射影に $O(d \cdot V)$ の浮動小数点演算と、重み行列 $W$ 全体のメモリストリーミングが必要となります。
+近年のオープンモデル（Qwen2.5 の $V = 151,936$、Gemma 2 の $V = 256,128$、Gemma 4 の $V = 262,144$ など）では、全語彙の射影に $O(d \cdot V)$ の浮動小数点演算と、重み行列 $W$ 全体のメモリストリーミングが必要となります。
 
 候補トークン集合 $\mathcal{C}$ に対応する行のみを事前にスライスした重み行列：
 $$W_{\text{sliced}} = W[\mathcal{C}, :] \in \mathbb{R}^{K \times d}$$
 を用いることで、射影計算は以下に限定されます：
 $$\mathbf{z}_{\text{sliced}} = h_n W_{\text{sliced}}^T$$
-これにより、最終分類層における計算量および重みアクセスのメモリアクセス量は $K / V$（$K \ll V$、選択肢数3件の場合は約 $0.002\%$）に圧縮されます。NVIDIA GeForce RTX 3060 での実機プロファイリング測定でも、Sliced LM-Head の実行時間は約 $0.05\,\text{ms}$（全処理時間の約 $0.16\%$）となり、最終層のオーバーヘッドは無視できる水準に抑えられます。
+これにより、最終分類層における計算量および重みアクセスのメモリアクセス量は $K / V$（$K \ll V$、選択肢数3件の場合、Gemma 4 で約 $0.0011\%$、Qwen2.5 で約 $0.0020\%$）に圧縮されます。NVIDIA GeForce RTX 3060 での実機プロファイリング測定でも、Sliced LM-Head の実行時間は約 $0.05\,\text{ms}$（全処理時間の約 $0.16\%$）となり、最終層のオーバーヘッドは無視できる水準に抑えられます。
 
 ## Index Projection Mapping / インデックス射影マッピング
 
