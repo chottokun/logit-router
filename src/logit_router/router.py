@@ -7,7 +7,13 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 class LogitRouter:
     def __init__(
-        self, model_id="Qwen/Qwen2.5-1.5B-Instruct", device=None, max_choices=10
+        self,
+        model_id="Qwen/Qwen2.5-1.5B-Instruct",
+        device=None,
+        max_choices=10,
+        load_in_4bit: bool = False,
+        load_in_8bit: bool = False,
+        device_map: str | dict | None = None,
     ):
         if device is None:
             self.device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -17,21 +23,48 @@ class LogitRouter:
         self.max_choices = max_choices
         self.tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast=True)
 
-        dtype = torch.bfloat16 if self.device == "cuda" else torch.float32
+        dtype = (
+            "auto"
+            if (load_in_4bit or load_in_8bit)
+            else (torch.bfloat16 if self.device == "cuda" else torch.float32)
+        )
+
+        quantization_config = None
+        if load_in_4bit or load_in_8bit:
+            try:
+                from transformers import BitsAndBytesConfig
+
+                quantization_config = BitsAndBytesConfig(
+                    load_in_4bit=load_in_4bit,
+                    load_in_8bit=load_in_8bit,
+                )
+            except ImportError:
+                import warnings
+
+                warnings.warn(
+                    "bitsandbytes is not installed. Quantization will be disabled."
+                )
+
+        final_device_map = device_map if device_map is not None else self.device
+
+        model_kwargs = {
+            "torch_dtype": dtype,
+            "device_map": final_device_map,
+        }
+        if quantization_config is not None:
+            model_kwargs["quantization_config"] = quantization_config
 
         try:
             self.model = AutoModelForCausalLM.from_pretrained(
                 model_id,
-                torch_dtype=dtype,
-                device_map=self.device,
                 attn_implementation="flash_attention_2",
+                **model_kwargs,
             )
         except (ImportError, Exception):
             self.model = AutoModelForCausalLM.from_pretrained(
                 model_id,
-                torch_dtype=dtype,
-                device_map=self.device,
                 attn_implementation="sdpa",
+                **model_kwargs,
             )
 
         self.model.eval()
@@ -39,7 +72,7 @@ class LogitRouter:
 
         self.choice_letters = [chr(ord("A") + i) for i in range(max_choices)]
         self.choice_token_ids = [
-            self.tokenizer.encode(f" {letter}", add_special_tokens=False)[0]
+            self.tokenizer.encode(f" {letter}", add_special_tokens=False)[-1]
             for letter in self.choice_letters
         ]
 
@@ -67,7 +100,27 @@ class LogitRouter:
             [f"{self.choice_letters[i]}. {choice}" for i, choice in enumerate(choices)]
         )
 
-        prompt = f"""<|im_start|>system
+        messages = [
+            {
+                "role": "system",
+                "content": "You are a fast routing engine. Select the single best choice based strictly on the context.",
+            },
+            {
+                "role": "user",
+                "content": f"Context: {context}\n\nTask: {instruction}\n\nChoices:\n{formatted_choices}\n\nSelect the single correct option letter.",
+            },
+        ]
+
+        try:
+            prompt = self.tokenizer.apply_chat_template(
+                messages, tokenize=False, add_generation_prompt=True
+            )
+            # Ensure "Answer:" is at the end or proper generation space is left.
+            if not prompt.endswith("Answer: "):
+                prompt += "Answer: "
+        except Exception:
+            # Fallback if tokenizer lacks a chat template
+            prompt = f"""<|im_start|>system
 You are a fast routing engine. Select the single best choice based strictly on the \
 context.<|im_end|>
 <|im_start|>user

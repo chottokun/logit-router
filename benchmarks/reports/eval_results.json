@@ -1,0 +1,601 @@
+{
+  "summary": {
+    "overall_accuracy": 80.0,
+    "avg_latency_ms": 55.07119087219238,
+    "min_latency_ms": 23.11846351623535,
+    "max_latency_ms": 1238.10693359375,
+    "avg_confidence": 0.88203125,
+    "avg_entropy": 0.2940846503900715
+  },
+  "domain_accuracies": {
+    "customer_support": 90.0,
+    "tool_selection": 100.0,
+    "model_routing": 50.0,
+    "security_guardrail": 70.0,
+    "intent_sentiment": 90.0
+  },
+  "results": [
+    {
+      "input": "",
+      "expected": "決済・請求窓口",
+      "predicted": "一般的な操作案内",
+      "is_correct": false,
+      "latency_ms": 1238.10693359375,
+      "confidence": 0.6015625,
+      "entropy": 0.7884127849794738,
+      "domain": "customer_support"
+    },
+    {
+      "input": "",
+      "expected": "Account Management",
+      "predicted": "Account Management",
+      "is_correct": true,
+      "latency_ms": 53.68431854248047,
+      "confidence": 0.58984375,
+      "entropy": 0.6874260123844034,
+      "domain": "customer_support"
+    },
+    {
+      "input": "",
+      "expected": "契約・解約窓口",
+      "predicted": "契約・解約窓口",
+      "is_correct": true,
+      "latency_ms": 27.07321548461914,
+      "confidence": 0.98046875,
+      "entropy": 0.09900467175695088,
+      "domain": "customer_support"
+    },
+    {
+      "input": "",
+      "expected": "技術サポート",
+      "predicted": "技術サポート",
+      "is_correct": true,
+      "latency_ms": 26.962783813476562,
+      "confidence": 0.984375,
+      "entropy": 0.08284603499125165,
+      "domain": "customer_support"
+    },
+    {
+      "input": "",
+      "expected": "Billing & Payments",
+      "predicted": "Billing & Payments",
+      "is_correct": true,
+      "latency_ms": 50.12684631347656,
+      "confidence": 0.9453125,
+      "entropy": 0.24003393796501193,
+      "domain": "customer_support"
+    },
+    {
+      "input": "",
+      "expected": "システム障害・技術対応",
+      "predicted": "システム障害・技術対応",
+      "is_correct": true,
+      "latency_ms": 24.74496078491211,
+      "confidence": 0.9765625,
+      "entropy": 0.11626981546163137,
+      "domain": "customer_support"
+    },
+    {
+      "input": "",
+      "expected": "Sales",
+      "predicted": "Sales",
+      "is_correct": true,
+      "latency_ms": 25.539968490600586,
+      "confidence": 0.62109375,
+      "entropy": 0.6821989338171038,
+      "domain": "customer_support"
+    },
+    {
+      "input": "",
+      "expected": "一般的な操作案内",
+      "predicted": "一般的な操作案内",
+      "is_correct": true,
+      "latency_ms": 24.8351993560791,
+      "confidence": 0.95703125,
+      "entropy": 0.20076905875677037,
+      "domain": "customer_support"
+    },
+    {
+      "input": "",
+      "expected": "Feedback & Product",
+      "predicted": "Feedback & Product",
+      "is_correct": true,
+      "latency_ms": 54.807777404785156,
+      "confidence": 0.9921875,
+      "entropy": 0.04775156102525105,
+      "domain": "customer_support"
+    },
+    {
+      "input": "",
+      "expected": "営業・プラン相談",
+      "predicted": "営業・プラン相談",
+      "is_correct": true,
+      "latency_ms": 25.041919708251953,
+      "confidence": 0.99609375,
+      "entropy": 0.0333344097221521,
+      "domain": "customer_support"
+    },
+    {
+      "input": "",
+      "expected": "Database_SQL_Runner",
+      "predicted": "Database_SQL_Runner",
+      "is_correct": true,
+      "latency_ms": 23.880704879760742,
+      "confidence": 0.98046875,
+      "entropy": 0.10430332838930657,
+      "domain": "tool_selection"
+    },
+    {
+      "input": "",
+      "expected": "Chart_Generator",
+      "predicted": "Chart_Generator",
+      "is_correct": true,
+      "latency_ms": 24.08438491821289,
+      "confidence": 0.98828125,
+      "entropy": 0.07480463664750955,
+      "domain": "tool_selection"
+    },
+    {
+      "input": "",
+      "expected": "Slack_Notifier",
+      "predicted": "Slack_Notifier",
+      "is_correct": true,
+      "latency_ms": 23.72822380065918,
+      "confidence": 0.72265625,
+      "entropy": 0.705671030522724,
+      "domain": "tool_selection"
+    },
+    {
+      "input": "",
+      "expected": "Web_Search",
+      "predicted": "Web_Search",
+      "is_correct": true,
+      "latency_ms": 24.4715518951416,
+      "confidence": 0.9921875,
+      "entropy": 0.04506313643194048,
+      "domain": "tool_selection"
+    },
+    {
+      "input": "",
+      "expected": "Calculator",
+      "predicted": "Calculator",
+      "is_correct": true,
+      "latency_ms": 23.536640167236328,
+      "confidence": 0.9921875,
+      "entropy": 0.05464811115002514,
+      "domain": "tool_selection"
+    },
+    {
+      "input": "",
+      "expected": "Python_REPL",
+      "predicted": "Python_REPL",
+      "is_correct": true,
+      "latency_ms": 24.66912078857422,
+      "confidence": 0.93359375,
+      "entropy": 0.2799780445511741,
+      "domain": "tool_selection"
+    },
+    {
+      "input": "",
+      "expected": "System_Metrics_API",
+      "predicted": "System_Metrics_API",
+      "is_correct": true,
+      "latency_ms": 30.55948829650879,
+      "confidence": 1.0,
+      "entropy": 0.007036924930478789,
+      "domain": "tool_selection"
+    },
+    {
+      "input": "",
+      "expected": "Document_Manager",
+      "predicted": "Document_Manager",
+      "is_correct": true,
+      "latency_ms": 23.11846351623535,
+      "confidence": 0.99609375,
+      "entropy": 0.02007117132509521,
+      "domain": "tool_selection"
+    },
+    {
+      "input": "",
+      "expected": "Translator_API",
+      "predicted": "Translator_API",
+      "is_correct": true,
+      "latency_ms": 24.754016876220703,
+      "confidence": 0.9921875,
+      "entropy": 0.04060126390232561,
+      "domain": "tool_selection"
+    },
+    {
+      "input": "",
+      "expected": "Database_SQL_Runner",
+      "predicted": "Database_SQL_Runner",
+      "is_correct": true,
+      "latency_ms": 24.406015396118164,
+      "confidence": 0.97265625,
+      "entropy": 0.13060229359889247,
+      "domain": "tool_selection"
+    },
+    {
+      "input": "",
+      "expected": "Small_Fast_Model",
+      "predicted": "Large_Reasoning_Model",
+      "is_correct": false,
+      "latency_ms": 80.59078216552734,
+      "confidence": 0.63671875,
+      "entropy": 0.6552827721875505,
+      "domain": "model_routing"
+    },
+    {
+      "input": "",
+      "expected": "Large_Reasoning_Model",
+      "predicted": "Small_Fast_Model",
+      "is_correct": false,
+      "latency_ms": 24.93529510498047,
+      "confidence": 0.73046875,
+      "entropy": 0.5827920511943335,
+      "domain": "model_routing"
+    },
+    {
+      "input": "",
+      "expected": "Large_Reasoning_Model",
+      "predicted": "Large_Reasoning_Model",
+      "is_correct": true,
+      "latency_ms": 24.89958381652832,
+      "confidence": 0.94140625,
+      "entropy": 0.22575345736201774,
+      "domain": "model_routing"
+    },
+    {
+      "input": "",
+      "expected": "Small_Fast_Model",
+      "predicted": "Large_Reasoning_Model",
+      "is_correct": false,
+      "latency_ms": 24.633344650268555,
+      "confidence": 0.796875,
+      "entropy": 0.5041218273667948,
+      "domain": "model_routing"
+    },
+    {
+      "input": "",
+      "expected": "Small_Fast_Model",
+      "predicted": "Large_Reasoning_Model",
+      "is_correct": false,
+      "latency_ms": 24.412128448486328,
+      "confidence": 0.8515625,
+      "entropy": 0.4199891699888435,
+      "domain": "model_routing"
+    },
+    {
+      "input": "",
+      "expected": "Large_Reasoning_Model",
+      "predicted": "Large_Reasoning_Model",
+      "is_correct": true,
+      "latency_ms": 41.986209869384766,
+      "confidence": 0.9609375,
+      "entropy": 0.16108269272089723,
+      "domain": "model_routing"
+    },
+    {
+      "input": "",
+      "expected": "Small_Fast_Model",
+      "predicted": "Small_Fast_Model",
+      "is_correct": true,
+      "latency_ms": 24.561664581298828,
+      "confidence": 0.65234375,
+      "entropy": 0.646088634221786,
+      "domain": "model_routing"
+    },
+    {
+      "input": "",
+      "expected": "Small_Fast_Model",
+      "predicted": "Large_Reasoning_Model",
+      "is_correct": false,
+      "latency_ms": 41.7391357421875,
+      "confidence": 0.69140625,
+      "entropy": 0.6176214525041952,
+      "domain": "model_routing"
+    },
+    {
+      "input": "",
+      "expected": "Large_Reasoning_Model",
+      "predicted": "Large_Reasoning_Model",
+      "is_correct": true,
+      "latency_ms": 25.34204864501953,
+      "confidence": 0.65234375,
+      "entropy": 0.646088634221786,
+      "domain": "model_routing"
+    },
+    {
+      "input": "",
+      "expected": "Large_Reasoning_Model",
+      "predicted": "Large_Reasoning_Model",
+      "is_correct": true,
+      "latency_ms": 25.70956802368164,
+      "confidence": 0.95703125,
+      "entropy": 0.1751587205801681,
+      "domain": "model_routing"
+    },
+    {
+      "input": "",
+      "expected": "Unsafe_Reject",
+      "predicted": "Unsafe_Reject",
+      "is_correct": true,
+      "latency_ms": 47.95878219604492,
+      "confidence": 0.8515625,
+      "entropy": 0.4199891699888435,
+      "domain": "security_guardrail"
+    },
+    {
+      "input": "",
+      "expected": "Safe_Process",
+      "predicted": "Safe_Process",
+      "is_correct": true,
+      "latency_ms": 33.505279541015625,
+      "confidence": 0.77734375,
+      "entropy": 0.5302493862813463,
+      "domain": "security_guardrail"
+    },
+    {
+      "input": "",
+      "expected": "Unsafe_Reject",
+      "predicted": "Unsafe_Reject",
+      "is_correct": true,
+      "latency_ms": 23.849119186401367,
+      "confidence": 0.96875,
+      "entropy": 0.13875956457291622,
+      "domain": "security_guardrail"
+    },
+    {
+      "input": "",
+      "expected": "Safe_Process",
+      "predicted": "Unsafe_Reject",
+      "is_correct": false,
+      "latency_ms": 24.657791137695312,
+      "confidence": 0.65234375,
+      "entropy": 0.646088634221786,
+      "domain": "security_guardrail"
+    },
+    {
+      "input": "",
+      "expected": "Unsafe_Reject",
+      "predicted": "Unsafe_Reject",
+      "is_correct": true,
+      "latency_ms": 24.70204734802246,
+      "confidence": 0.80859375,
+      "entropy": 0.48889118388580144,
+      "domain": "security_guardrail"
+    },
+    {
+      "input": "",
+      "expected": "Unsafe_Reject",
+      "predicted": "Unsafe_Reject",
+      "is_correct": true,
+      "latency_ms": 24.90163230895996,
+      "confidence": 0.98046875,
+      "entropy": 0.09513061702301295,
+      "domain": "security_guardrail"
+    },
+    {
+      "input": "",
+      "expected": "Safe_Process",
+      "predicted": "Unsafe_Reject",
+      "is_correct": false,
+      "latency_ms": 24.583168029785156,
+      "confidence": 0.796875,
+      "entropy": 0.5041218273667948,
+      "domain": "security_guardrail"
+    },
+    {
+      "input": "",
+      "expected": "Safe_Process",
+      "predicted": "Unsafe_Reject",
+      "is_correct": false,
+      "latency_ms": 25.636863708496094,
+      "confidence": 0.828125,
+      "entropy": 0.45958722351009557,
+      "domain": "security_guardrail"
+    },
+    {
+      "input": "",
+      "expected": "Unsafe_Reject",
+      "predicted": "Unsafe_Reject",
+      "is_correct": true,
+      "latency_ms": 24.403839111328125,
+      "confidence": 0.796875,
+      "entropy": 0.5041218273667948,
+      "domain": "security_guardrail"
+    },
+    {
+      "input": "",
+      "expected": "Unsafe_Reject",
+      "predicted": "Unsafe_Reject",
+      "is_correct": true,
+      "latency_ms": 23.72198486328125,
+      "confidence": 0.984375,
+      "entropy": 0.0812541492668648,
+      "domain": "security_guardrail"
+    },
+    {
+      "input": "",
+      "expected": "苦情",
+      "predicted": "苦情",
+      "is_correct": true,
+      "latency_ms": 28.020736694335938,
+      "confidence": 0.95703125,
+      "entropy": 0.21474006096224035,
+      "domain": "intent_sentiment"
+    },
+    {
+      "input": "",
+      "expected": "Question",
+      "predicted": "Purchase_Intent",
+      "is_correct": false,
+      "latency_ms": 32.210689544677734,
+      "confidence": 0.96484375,
+      "entropy": 0.18894349025800508,
+      "domain": "intent_sentiment"
+    },
+    {
+      "input": "",
+      "expected": "賞賛",
+      "predicted": "賞賛",
+      "is_correct": true,
+      "latency_ms": 31.59596824645996,
+      "confidence": 0.9453125,
+      "entropy": 0.23111883533218355,
+      "domain": "intent_sentiment"
+    },
+    {
+      "input": "",
+      "expected": "質問",
+      "predicted": "質問",
+      "is_correct": true,
+      "latency_ms": 28.226560592651367,
+      "confidence": 0.98046875,
+      "entropy": 0.11318768030360314,
+      "domain": "intent_sentiment"
+    },
+    {
+      "input": "",
+      "expected": "Purchase_Intent",
+      "predicted": "Purchase_Intent",
+      "is_correct": true,
+      "latency_ms": 24.464448928833008,
+      "confidence": 0.98828125,
+      "entropy": 0.07447582104465389,
+      "domain": "intent_sentiment"
+    },
+    {
+      "input": "",
+      "expected": "要望",
+      "predicted": "要望",
+      "is_correct": true,
+      "latency_ms": 40.602272033691406,
+      "confidence": 0.9921875,
+      "entropy": 0.0564852275858146,
+      "domain": "intent_sentiment"
+    },
+    {
+      "input": "",
+      "expected": "Complaint",
+      "predicted": "Complaint",
+      "is_correct": true,
+      "latency_ms": 44.49212646484375,
+      "confidence": 1.0,
+      "entropy": 0.005211643415829631,
+      "domain": "intent_sentiment"
+    },
+    {
+      "input": "",
+      "expected": "購入意図",
+      "predicted": "購入意図",
+      "is_correct": true,
+      "latency_ms": 45.98886489868164,
+      "confidence": 0.78125,
+      "entropy": 0.6666913333356023,
+      "domain": "intent_sentiment"
+    },
+    {
+      "input": "",
+      "expected": "Request",
+      "predicted": "Request",
+      "is_correct": true,
+      "latency_ms": 38.8422737121582,
+      "confidence": 0.9921875,
+      "entropy": 0.04554509707052761,
+      "domain": "intent_sentiment"
+    },
+    {
+      "input": "",
+      "expected": "賞賛",
+      "predicted": "賞賛",
+      "is_correct": true,
+      "latency_ms": 24.25279998779297,
+      "confidence": 0.96875,
+      "entropy": 0.1648331720530128,
+      "domain": "intent_sentiment"
+    }
+  ],
+  "failures": [
+    {
+      "input": "",
+      "expected": "決済・請求窓口",
+      "predicted": "一般的な操作案内",
+      "confidence": 0.6015625,
+      "entropy": 0.7884127849794738,
+      "domain": "customer_support"
+    },
+    {
+      "input": "",
+      "expected": "Small_Fast_Model",
+      "predicted": "Large_Reasoning_Model",
+      "confidence": 0.63671875,
+      "entropy": 0.6552827721875505,
+      "domain": "model_routing"
+    },
+    {
+      "input": "",
+      "expected": "Large_Reasoning_Model",
+      "predicted": "Small_Fast_Model",
+      "confidence": 0.73046875,
+      "entropy": 0.5827920511943335,
+      "domain": "model_routing"
+    },
+    {
+      "input": "",
+      "expected": "Small_Fast_Model",
+      "predicted": "Large_Reasoning_Model",
+      "confidence": 0.796875,
+      "entropy": 0.5041218273667948,
+      "domain": "model_routing"
+    },
+    {
+      "input": "",
+      "expected": "Small_Fast_Model",
+      "predicted": "Large_Reasoning_Model",
+      "confidence": 0.8515625,
+      "entropy": 0.4199891699888435,
+      "domain": "model_routing"
+    },
+    {
+      "input": "",
+      "expected": "Small_Fast_Model",
+      "predicted": "Large_Reasoning_Model",
+      "confidence": 0.69140625,
+      "entropy": 0.6176214525041952,
+      "domain": "model_routing"
+    },
+    {
+      "input": "",
+      "expected": "Safe_Process",
+      "predicted": "Unsafe_Reject",
+      "confidence": 0.65234375,
+      "entropy": 0.646088634221786,
+      "domain": "security_guardrail"
+    },
+    {
+      "input": "",
+      "expected": "Safe_Process",
+      "predicted": "Unsafe_Reject",
+      "confidence": 0.796875,
+      "entropy": 0.5041218273667948,
+      "domain": "security_guardrail"
+    },
+    {
+      "input": "",
+      "expected": "Safe_Process",
+      "predicted": "Unsafe_Reject",
+      "confidence": 0.828125,
+      "entropy": 0.45958722351009557,
+      "domain": "security_guardrail"
+    },
+    {
+      "input": "",
+      "expected": "Question",
+      "predicted": "Purchase_Intent",
+      "confidence": 0.96484375,
+      "entropy": 0.18894349025800508,
+      "domain": "intent_sentiment"
+    }
+  ]
+}
