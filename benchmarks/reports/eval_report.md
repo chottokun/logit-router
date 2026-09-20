@@ -12,7 +12,11 @@ sources: []
 
 # モデル評価レポート
 
-## 評価設定
+> [!IMPORTANT]
+> **最新の評価レポートについて**:
+> 本ドキュメントは初期の単一モデル（Qwen 1.5B / 50問）の予備レポートです。`google/gemma-4-E2B-it` を含む5モデル横断・10大ドメイン100問の深層実機評価と考察は **[10大ドメイン100問深層実機評価レポート](deep_eval_report.md)**、通常生成との直接対決実測は **[通常生成との速度・レイテンシ比較レポート](comparison_vs_generation_report.md)** をご覧ください。
+
+## 評価設定 (Legacy / 予備測定)
 
 - **Model**: `Qwen/Qwen2.5-1.5B-Instruct`
 - **Dataset**: `benchmarks/data/eval_cases.json`

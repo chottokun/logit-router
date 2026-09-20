@@ -14,13 +14,17 @@ sources:
 
 # Model Evaluation Report / モデル評価レポート
 
+> [!IMPORTANT]
+> **最新の評価レポートについて (Latest Comprehensive Reports)**:
+> 本ドキュメントは初期の単一モデル予備測定結果です。`google/gemma-4-E2B-it` を含む5モデル・10大ドメイン100問の深層評価・批判的/建設的考察は **[Deep 10-Domain Benchmark Report](deep_eval_report.md)**、通常生成との直接対決実測は **[Comparison vs Generation Report](comparison_vs_generation_report.md)** をご覧ください。
+
 **[English]**
 This document presents benchmark evaluation metrics for `LogitRouter` executed on a local workstation. The evaluation covers overall accuracy, inference latency distributions, prediction confidence, entropy statistics, and error analysis across five domains.
 
 **[Japanese]**
 本ドキュメントは、ローカル環境で計測された `LogitRouter` のベンチマーク評価指標を記録したものです。5つのタスクドメインを対象に、全体正解率、推論遅延の統計値、確信度およびエントロピーの分布、ならびに誤分類事例の分析を示します。
 
-## Evaluation Configuration / 評価環境と設定
+## Evaluation Configuration (Legacy) / 評価環境と設定
 
 - **Model**: `Qwen/Qwen2.5-1.5B-Instruct`
 - **Device**: NVIDIA GeForce RTX 3060 (12GB VRAM, CUDA)
