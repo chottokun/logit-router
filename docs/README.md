@@ -28,9 +28,10 @@ This documentation describes the Logit Router system conforming to the Open Know
 - `domain/` - Explanations of domain primitives, request/response models, fallback strategies, and **concrete code implementation details** of the router.
   - Highlight: [Router Implementation Details](domain/router_implementation_details.md)
 - `infrastructure/` - Details regarding the FastAPI server, lifecycle management, and inference endpoints.
-- `references/` - Empirical on-device benchmarks, autoregressive comparison (up to 10x speedup), 100-case deep evaluation across 10 domains, position bias, and OOD metrics.
+- `references/` - Empirical on-device benchmarks, autoregressive comparison (up to 10x speedup), 100-case deep evaluation across 10 domains, 4-bit / AWQ quantization evaluations, position bias, and OOD metrics.
   - Highlight: [Deep 10-Domain Benchmark Report](references/deep_eval_report.md)
   - Highlight: [Comparison vs Generation Report](references/comparison_vs_generation_report.md)
+  - Highlight: [Quantization Benchmark Report (4-bit & AWQ)](references/quantization_matrix_report.md)
 
 **[Japanese]**
 - `architecture/` - 単一フォワードパスルーティング、Sliced LM-Head 最適化、Gemma 4 の語彙圧縮効果、および **2段階カスケードルーティング設計** などのアーキテクチャ詳細。
@@ -38,6 +39,7 @@ This documentation describes the Logit Router system conforming to the Open Know
 - `domain/` - ドメインプリミティブ、リクエスト・レスポンスモデル、フォールバック戦略、および **ルーター具象コード実装仕様** の解説。
   - 主要ドキュメント: [Router Implementation Details (LogitRouter 実装詳細仕様)](domain/router_implementation_details.md)
 - `infrastructure/` - FastAPIサーバー、ライフサイクル管理、推論エンドポイントに関する実装詳細。
-- `references/` - 実機ベンチマーク実測値、通常生成との直接対決（最大10倍・Gemma4で5.78倍高速化）、10大ドメイン100問深層評価、位置バイアス検証などのリファレンス。
+- `references/` - 実機ベンチマーク実測値、通常生成との直接対決（最大10倍・Gemma4で5.78倍高速化）、10大ドメイン100問深層評価、4-bit / AWQ 量子化評価、位置バイアス検証などのリファレンス。
   - 主要ドキュメント: [Deep 10-Domain Benchmark Report (10大ドメイン100問深層実機評価レポート)](references/deep_eval_report.md)
   - 主要ドキュメント: [Comparison vs Generation Report (通常生成との速度・レイテンシ比較レポート)](references/comparison_vs_generation_report.md)
+  - 主要ドキュメント: [Quantization Benchmark Report (4-bit / AWQ 量子化実機評価レポート)](references/quantization_matrix_report.md)

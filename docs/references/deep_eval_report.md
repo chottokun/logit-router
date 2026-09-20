@@ -15,10 +15,10 @@ sources:
 # Deep 10-Domain Benchmark Report / 10大ドメイン100問深層実機評価レポート
 
 **[English]**
-This report delivers a rigorous, strictly measured empirical benchmark comparing 4 model candidates across 100 comprehensive test cases spanning 10 distinct domains on an NVIDIA GeForce RTX 3060 (12GB VRAM). It features critical failure mode analysis and constructive architectural insights.
+This report delivers a rigorous, strictly measured empirical benchmark comparing 5 model candidates across 100 comprehensive test cases spanning 10 distinct domains on an NVIDIA GeForce RTX 3060 (12GB VRAM). It features critical failure mode analysis and constructive architectural insights.
 
 **[Japanese]**
-本レポートは、NVIDIA GeForce RTX 3060 (12GB VRAM) 実機環境において、4つの候補モデルを10大ドメイン・計100問の超網羅的データセットで実行・測定した実測評価レポートです。推測値を完全に排除し、批判的要因分析と建設的なアーキテクチャ考察を含みます。
+本レポートは、NVIDIA GeForce RTX 3060 (12GB VRAM) 実機環境において、5つの候補モデルを10大ドメイン・計100問の超網羅的データセットで実行・測定した実測評価レポートです。推測値を完全に排除し、批判的要因分析と建設的なアーキテクチャ考察を含みます。
 
 ## 1. Overall Performance Matrix / 総合性能比較マトリクス
 

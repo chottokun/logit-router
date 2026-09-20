@@ -1,0 +1,126 @@
+[
+  {
+    "config_name": "Gemma-4-E2B-it (4-bit bitsandbytes)",
+    "model_id": "google/gemma-4-E2B-it",
+    "quant_method": "bitsandbytes 4-bit (NF4)",
+    "vocab_size": 262144,
+    "total_cases": 100,
+    "correct_cases": 91,
+    "accuracy": 91.0,
+    "domain_results": {
+      "customer_support": {
+        "correct": 7,
+        "total": 10
+      },
+      "tool_selection": {
+        "correct": 10,
+        "total": 10
+      },
+      "model_routing": {
+        "correct": 10,
+        "total": 10
+      },
+      "security_guardrail": {
+        "correct": 10,
+        "total": 10
+      },
+      "intent_sentiment": {
+        "correct": 8,
+        "total": 10
+      },
+      "code_language_dispatch": {
+        "correct": 9,
+        "total": 10
+      },
+      "compliance_pii": {
+        "correct": 7,
+        "total": 10
+      },
+      "multilingual_routing": {
+        "correct": 10,
+        "total": 10
+      },
+      "ambiguity_clarification": {
+        "correct": 10,
+        "total": 10
+      },
+      "urgent_escalation": {
+        "correct": 10,
+        "total": 10
+      }
+    },
+    "mean_latency_ms": 166.17,
+    "p50_latency_ms": 171.89,
+    "p90_latency_ms": 197.07,
+    "p95_latency_ms": 211.12,
+    "min_latency_ms": 129.35,
+    "max_latency_ms": 226.37,
+    "peak_vram_mb": 6643.8,
+    "mean_confidence": 0.9801,
+    "mean_entropy": 0.0588,
+    "correct_mean_entropy": 0.0417,
+    "incorrect_mean_entropy": 0.2322
+  },
+  {
+    "config_name": "Qwen2.5-1.5B-Instruct-AWQ (Marlin 4-bit)",
+    "model_id": "Qwen/Qwen2.5-1.5B-Instruct-AWQ",
+    "quant_method": "AWQ 4-bit (Marlin)",
+    "vocab_size": 151643,
+    "total_cases": 100,
+    "correct_cases": 84,
+    "accuracy": 84.0,
+    "domain_results": {
+      "customer_support": {
+        "correct": 6,
+        "total": 10
+      },
+      "tool_selection": {
+        "correct": 9,
+        "total": 10
+      },
+      "model_routing": {
+        "correct": 8,
+        "total": 10
+      },
+      "security_guardrail": {
+        "correct": 10,
+        "total": 10
+      },
+      "intent_sentiment": {
+        "correct": 8,
+        "total": 10
+      },
+      "code_language_dispatch": {
+        "correct": 9,
+        "total": 10
+      },
+      "compliance_pii": {
+        "correct": 5,
+        "total": 10
+      },
+      "multilingual_routing": {
+        "correct": 10,
+        "total": 10
+      },
+      "ambiguity_clarification": {
+        "correct": 9,
+        "total": 10
+      },
+      "urgent_escalation": {
+        "correct": 10,
+        "total": 10
+      }
+    },
+    "mean_latency_ms": 35.78,
+    "p50_latency_ms": 31.41,
+    "p90_latency_ms": 46.61,
+    "p95_latency_ms": 66.28,
+    "min_latency_ms": 24.36,
+    "max_latency_ms": 94.81,
+    "peak_vram_mb": 3033.0,
+    "mean_confidence": 0.8544,
+    "mean_entropy": 0.3901,
+    "correct_mean_entropy": 0.3317,
+    "incorrect_mean_entropy": 0.6965
+  }
+]

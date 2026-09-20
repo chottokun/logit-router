@@ -64,7 +64,8 @@ flowchart TD
 | **`Qwen/Qwen2.5-0.5B-Instruct`** | [Qwen/Qwen2.5-0.5B-Instruct](https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct) | [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) (商用利用可) | 最速（約16ms / VRAM 0.96GB）。構文判定向け | **測定済 (100問)** |
 | **`HuggingFaceTB/SmolLM2-360M-Instruct`** | [HuggingFaceTB/SmolLM2-360M-Instruct](https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct) | [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) (商用利用可) | 最軽量（23ms / VRAM 0.7GB）。英語明示タスク向け | **測定済 (100問)** |
 | **`meta-llama/Llama-3.2-1B-Instruct`** | [meta-llama/Llama-3.2-1B-Instruct](https://huggingface.co/meta-llama/Llama-3.2-1B-Instruct) | [Llama 3.2 Community](https://llama.meta.com/llama3/license/) (商用利用可) | Llama エコシステム対応（Byte-level BPE） | コード動作確認済 |
-| **AWQ / 4-bit 量子化モデル** | 例: `TheBloke/Llama-2-7B-AWQ` 等 | 各元モデルのライセンスに準拠 | VRAM 節約環境向け。量子化ヘッドの自動フォールバック | コード動作確認済 |
+| **`Qwen/Qwen2.5-1.5B-Instruct-AWQ`** | [Qwen/Qwen2.5-1.5B-Instruct-AWQ](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-AWQ) | [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) (商用利用可) | AWQ 4-bit Marlin 最適化。高速（31ms / 84% 精度） | **測定済 (100問)** |
+| **`google/gemma-4-E2B-it` (4-bit)** | [google/gemma-4-E2B-it](https://huggingface.co/google/gemma-4-E2B-it) | [Gemma Terms of Use](https://ai.google.dev/gemma/terms) (商用利用可) | bitsandbytes 4-bit。VRAM 32% 削減しつつ 91% 精度維持 | **測定済 (100問)** |
 
 ## Installation
 
@@ -152,7 +153,15 @@ router = LogitRouter(
 | `Qwen/Qwen2.5-0.5B-Instruct` | **73.0%** (73/100) | 16.26 ms | 0.96 GB | 0.7331 | 構文判定は優秀だが行間解釈に限界 |
 | `HuggingFaceTB/SmolLM2-360M-Instruct` | **23.0%** (23/100) | 23.76 ms | 0.71 GB | 0.4275 | 日本語や複雑推論で大幅な過信誤分類 |
 
-### 3. 要因分解プロファイル (`benchmarks/bench_profile.py`)
+### 3. 4-bit 量子化・AWQ 実機実測値 (100問評価)
+VRAM 制約環境向けの 4-bit 量子化（bitsandbytes NF4 および AWQ Marlin）における、同一100問実務データセットでの実測値です（詳細は [量子化ベンチマークレポート](benchmarks/reports/quantization_matrix_report.md) 参照）：
+
+| 設定・モデル | 手法 | 正解率 (100問) | p50 遅延 | ピーク VRAM | ベースライン比較 |
+|---|---|---|---|---|---|
+| **`google/gemma-4-E2B-it` (4-bit)** | bitsandbytes NF4 | **91.0%** (91/100) | 171.89 ms | **6.49 GB** (6643 MB) | **VRAM 32% 削減**（-3.1GB）、精度 91% を維持 |
+| **`Qwen2.5-1.5B-Instruct-AWQ`** | AWQ 4-bit (Marlin) | **84.0%** (84/100) | **31.41 ms** | **2.96 GB** (3033 MB) | **31ms の超高速**、ベースライン (81%) より高精度 |
+
+### 4. 要因分解プロファイル (`benchmarks/bench_profile.py`)
 単一クエリ（系列長 約135トークン, CUDA Event 計測）における処理フェーズ別の実行時間：
 
 | 処理フェーズ | 実測時間 (ms) | 割合 (%) | 備考 |
@@ -163,7 +172,7 @@ router = LogitRouter(
 | 後処理 (Softmax・エントロピー等) | 0.19 ms | 0.66% | 確率正規化と辞書構築 |
 | **合計推論時間** | **28.67 ms** | **100.0%** | モデル: Qwen2.5-0.5B-Instruct |
 
-### 4. 批判的分析と建設的推奨アーキテクチャ
+### 5. 批判的分析と建設的推奨アーキテクチャ
 - **1B未満モデルの限界と過信誤分類**: 360M や 0.5B は構文・明示的タスクで高い正解率を示しますが、行間の意図解釈や緊急度判定で誤分類が発生しやすく、誤答時にも確信度が高くなる（エントロピーが低い）現象が確認されました。
 - **推奨アーキテクチャ（2段階カスケード構成）**:
   1. **第1層（高速ゲート）**: `Qwen2.5-1.5B`（約35ms）で一次判定。エントロピー $H < 0.35$（明確な約80%のクエリ）は即座に確定。
