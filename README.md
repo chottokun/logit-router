@@ -12,26 +12,33 @@ Ultra-low latency LLM-based routing via single forward pass logit extraction.
 3. 事前キャッシュした LM-Head 重みとの内積で候補の確率を直接算出（Sliced LM-Head により全語彙射影をバイパス）
 
 ```mermaid
-flowchart LR
-    subgraph InputPhase["1. 入力とプロンプト構築"]
-        In["入力<br>(Context + Task)"] --> Map["A/B/C マッピング<br>(BPE/語頭空白正規化)"]
-        Map --> Tok["Tokenize<br>(Chat Template適用)"]
+flowchart TD
+    subgraph Step1["Step 1: 入力とプロンプト構築"]
+        In["ユーザー入力<br>(Context + Task + Choices)"]
+        Map["A/B/C インデックス射影<br>(語頭空白・BPE/SentencePiece正規化)"]
+        Tok["Tokenize<br>(Chat Template適用 + 末尾 'Answer:' 配置)"]
+        In --> Map --> Tok
     end
 
-    subgraph PrefillPhase["2. 単一フォワードパス (Prefill)"]
-        Tok --> Fwd["Backbone Forward Pass<br>(use_cache=False / KVキャッシュ無効)"]
-        Fwd --> LastH["末尾トークンの隠れ状態<br>h_last ∈ ℝ^(1 × d)"]
+    subgraph Step2["Step 2: 単一フォワードパス (Prefill)"]
+        Fwd["Backbone Forward Pass (Prefill)<br>(use_cache=False / KVキャッシュ無効化)"]
+        LastH["末尾トークンの隠れ状態を抽出<br>h_last ∈ ℝ^(1 × d)"]
+        Fwd --> LastH
     end
 
-    subgraph SlicedPhase["3. Sliced LM-Head 射影"]
-        LastH --> Sliced["Sliced MatMul<br>W_sliced ∈ ℝ^(K × d)<br>(全語彙射影をバイパス)"]
-        Sliced --> Softmax["Softmax & 不確実性計算<br>(Confidence, Entropy)"]
-        Softmax --> Out["RouteResult<br>(判定結果・確率分布)"]
+    subgraph Step3["Step 3: Sliced LM-Head 射影 & 不確実性評価"]
+        Sliced["Sliced MatMul<br>W_sliced ∈ ℝ^(K × d)<br>(全語彙 15万〜26万語への射影を完全バイパス)"]
+        Softmax["Softmax & 不確実性計算<br>(Confidence, Shannon Entropy)"]
+        Out["RouteResult<br>(判定結果, 確信度, エントロピー, 確率分布)"]
+        Sliced --> Softmax --> Out
     end
 
-    style InputPhase fill:#f8f9fa,stroke:#dee2e6,stroke-width:1px
-    style PrefillPhase fill:#e3f2fd,stroke:#90caf9,stroke-width:1px
-    style SlicedPhase fill:#e8f5e9,stroke:#a5d6a7,stroke-width:1px
+    Tok --> Fwd
+    LastH --> Sliced
+
+    style Step1 fill:#f8f9fa,stroke:#ced4da,stroke-width:1px
+    style Step2 fill:#e3f2fd,stroke:#90caf9,stroke-width:1px
+    style Step3 fill:#e8f5e9,stroke:#a5d6a7,stroke-width:1px
 ```
 
 ## Features
