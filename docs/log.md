@@ -13,4 +13,8 @@
 * **Architecture Expansion**: `docs/architecture/gemma_and_quantization.md` - Gemma 2 / Gemma 4 の 262K 超巨大語彙に対する Sliced LM-Head のスケーリング優位性および 4-bit/8-bit 量子化仕様を文書化。
 * **Deep Evaluation Suite**: `docs/references/deep_benchmarks_specification.md` - 10大ドメイン計100問の超網羅的データセット仕様（`deep_eval_cases.json`）を策定。
 * **Empirical Speedup & Multi-Model Matrix**: `docs/references/comparison_vs_generation_report.md`（通常生成との直接対決実測: 2倍〜8.8倍高速化）および `docs/references/robustness_matrix_report.md`（順列一致率 100%）を発行。
+* **Critical Failure Mode Analysis & Constructive Cascade Architecture**:
+  - 10大ドメイン100問の実機実測（`google/gemma-4-E2B-it`: 95.0% 首位）から、1B未満モデルの「過信誤分類 (Overconfident Misclassification)」および「難易度判定の逆転現象 (Adverse Selection)」を批判的に解明。
+  - 解決策として、`Qwen2.5-1.5B`（第1層: 約35ms）と `Gemma-4-E2B`（第2層: 95%精度）を統合した「2段階カスケードルーティング（Two-Tier Cascade Routing）」およびエントロピー＋ロジットマージンによる多層信頼度キャリブレーションを技術設計書（`docs/architecture/cascade_routing_and_critical_analysis.md`）として体系化。
+  - `docs/references/benchmarks_and_metrics.md`, `docs/references/multi_model_benchmark_report.md`, `docs/README.md` を最新実測知見に基づき全面的に更新。
 

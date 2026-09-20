@@ -31,6 +31,7 @@ Logit Router は、プロンプト末尾の単一フォワードパス（Prefill
 For details, refer to:
 - [Single Forward Pass Routing](single_forward_pass_routing.md)
 - [Gemma Architecture & Quantization](gemma_and_quantization.md)
+- [Cascade Routing & Critical Analysis](cascade_routing_and_critical_analysis.md)
 
 **[Japanese]**
 1. **単一フォワードパス抽出**: プロンプト末尾トークンのロジットのみを抽出することで、逐次トークン生成を省略します。
@@ -40,3 +41,4 @@ For details, refer to:
 技術仕様の詳細は以下を参照してください：
 - [Single Forward Pass Routing (単一フォワードパスルーティング)](single_forward_pass_routing.md)
 - [Gemma Architecture & Quantization (Gemma アーキテクチャと量子化技術)](gemma_and_quantization.md)
+- [Cascade Routing & Critical Analysis (カスケードルーティングと批判的分析)](cascade_routing_and_critical_analysis.md)

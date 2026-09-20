@@ -99,3 +99,33 @@ The router uses Shannon entropy $H$ as an uncertainty signal. On in-domain test 
 **[Japanese]**
 提示されたどの候補カテゴリにも合致しない入力クエリは、誤った候補へ割り振られる前に検出・除外される必要があります。
 本ルーターでは、不確実性の指標としてシャノンエントロピー $H$ を用います。ドメイン内の正当な入力では特定候補に確率が集中するため低エントロピー（平均値 $\approx 0.014$）となりますが、意図的に無関係なクエリを与えた場合は確率が分散し、エントロピーが上昇します（平均値 $\approx 0.834$）。適切なエントロピー閾値（通常 $0.5 \le H \le 0.6$）を設定することで、明確な分類と曖昧な入力を分離できます。
+
+## Critical Evaluation: Overconfidence & Model Scale / 批判的評価：過信誤分類とモデル規模の限界
+
+**[English]**
+While Shannon entropy reliably flags out-of-distribution inputs in 3B+ models, empirical 100-case benchmarks reveal that sub-1B models exhibit *overconfident misclassification*. Small models frequently assign >85% confidence to incorrect choices on ambiguous or complex reasoning queries, keeping entropy deceptively low. 
+Consequently, single-metric entropy thresholds fail as universal safety guards for compact models.
+
+**[Japanese]**
+3B以上のモデルではシャノンエントロピーが分布外や難問入力の検知に有効に機能しますが、100問の実機ベンチマークにより、**1B未満の小型モデルでは「過信誤分類（Overconfident Misclassification）」が発生する**ことが判明しました。小型モデルは曖昧・複雑な推論問題で誤答する際にも特定候補に 85% 以上の確率を割り当ててしまい、エントロピーが欺瞞的に低く抑えられます。
+したがって、小型モデルにおいてエントロピー単独の閾値判定を安全弁（Guardrail）として過信することは禁物です。
+
+## Constructive Multi-Metric Calibration / 建設的アプローチ：多層信頼度キャリブレーション
+
+**[English]**
+To resolve overconfident failures without sacrificing latency, the routing engine combines two complementary uncertainty metrics:
+1. **Shannon Entropy**: Measures overall distribution dispersion:
+   $$H(P) = -\sum_{i=1}^K p_i \ln p_i$$
+2. **Logit Margin**: Measures decision margin between Top-1 and Top-2 logits:
+   $$\Delta z = z_{(1)} - z_{(2)}$$
+
+A routing decision is certified as high certainty only when $H(P) < \tau_H$ AND $\Delta z > \tau_M$. When uncertain, the request is escalated to a Tier-2 high-capacity model (`google/gemma-4-E2B-it`). See [Cascade Routing & Critical Analysis](../architecture/cascade_routing_and_critical_analysis.md) for architectural details.
+
+**[Japanese]**
+過信による誤判定を低遅延のまま防ぐため、ルーティングエンジンは以下の2つの相補的指標を組み合わせた多層判定を採用します：
+1. **シャノンエントロピー**: 分布全体の分散度を測定
+   $$H(P) = -\sum_{i=1}^K p_i \ln p_i$$
+2. **ロジットマージン**: Top-1 と Top-2 の生ロジット差を測定
+   $$\Delta z = z_{(1)} - z_{(2)}$$
+
+判定が確定（高確信）とされるのは、$H(P) < \tau_H$ かつ $\Delta z > \tau_M$ の双方を満たす場合に限られます。確信が持てない曖昧なクエリは、自動的に第2層の高精度モデル（`google/gemma-4-E2B-it`）へエスカレーションされます。アーキテクチャの詳細は [Cascade Routing & Critical Analysis (カスケードルーティングと批判的分析)](../architecture/cascade_routing_and_critical_analysis.md) を参照してください。
