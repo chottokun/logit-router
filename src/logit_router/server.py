@@ -60,8 +60,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Logit Router API",
     description=(
-        "Ultra-low latency LLM-based routing via "
-        "single forward pass logit extraction"
+        "Ultra-low latency LLM-based routing via single forward pass logit extraction"
     ),
     version="0.1.0",
     lifespan=lifespan,

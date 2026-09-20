@@ -185,5 +185,3 @@ def test_apply_torch_compile():
         mock_compile.assert_called_once_with(
             orig_backbone, mode="reduce-overhead", fullgraph=False
         )
-
-
