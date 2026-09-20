@@ -2,7 +2,7 @@
 
 Ultra-low latency LLM-based routing via single forward pass logit extraction.
 
-オープンソースLLM（**Gemma 4**, **Gemma 2**, **Qwen 2.5**, **Llama 系列** 等）の単一フォワードパス（Prefill）から選択肢ロジットを直接抽出し、数ミリ秒〜数十ミリ秒で高精度な動的ルーティングを実現する Python ライブラリです。
+オープンソースLLM（**Gemma 4**, **Gemma 2**, **Qwen 2.5**, **Llama 系列** 等）の単一フォワードパス（Prefill）から選択肢ロジットを直接抽出し、数ミリ秒〜数十ミリ秒で高精度な動的ルーティングを実験的に実現してみた Python コードです。
 
 ## How It Works（仕組み）
 
@@ -24,6 +24,20 @@ Input → Prompt Build (A/B/C mapping) → Tokenize → Single Forward Pass → 
 - **量子化対応**: 4-bit / 8-bit (bitsandbytes) および AWQ 量子化ヘッドの自動フォールバック
 - **バックエンド最適化**: FlashAttention-2 / PyTorch SDPA 自動選択、`torch.compile`（CUDA Graphs）対応
 - **不確実性評価とカスケード**: シャノンエントロピーとロジットマージンによる不確実性検知、2段階カスケード（Tier-1 ゲート $\rightarrow$ Tier-2 フォールバック）
+
+## Supported Models & Licenses / 対応モデルと各ライセンス
+
+本コードで検証済みの代表的モデルおよび Hugging Face リンク、各ライセンスの一覧です。本リポジトリ自体は **MIT ライセンス** ですが、モデル重みは同梱しておらず、実行時に Hugging Face Hub からロードされます。各モデルの利用規約・ライセンスをご確認の上でご利用ください。
+
+| モデル名 / Model ID | Hugging Face リンク | ライセンス / License | 特徴・推奨用途 |
+| :--- | :--- | :--- | :--- |
+| **`google/gemma-4-E2B-it`** | [google/gemma-4-E2B-it](https://huggingface.co/google/gemma-4-E2B-it) | [Gemma Terms of Use](https://ai.google.dev/gemma/terms) (商用利用可) | **最高精度（95.0%）**。26.2万語彙による日本語複合語圧縮 |
+| **`Qwen/Qwen2.5-1.5B-Instruct`** | [Qwen/Qwen2.5-1.5B-Instruct](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct) | [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) (商用利用可) | **超低遅延（約35ms）**。第1層カスケードゲートに最適 |
+| **`Qwen/Qwen2.5-3B-Instruct`** | [Qwen/Qwen2.5-3B-Instruct](https://huggingface.co/Qwen/Qwen2.5-3B-Instruct) | [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) (商用利用可) | バランス型（85.0% 精度 / 62ms 遅延） |
+| **`Qwen/Qwen2.5-0.5B-Instruct`** | [Qwen/Qwen2.5-0.5B-Instruct](https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct) | [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) (商用利用可) | 最速（約16ms / VRAM 0.96GB）。構文判定向け |
+| **`meta-llama/Llama-3.2-1B-Instruct`** | [meta-llama/Llama-3.2-1B-Instruct](https://huggingface.co/meta-llama/Llama-3.2-1B-Instruct) | [Llama 3.2 Community](https://llama.meta.com/llama3/license/) (商用利用可) | Llama エコシステム対応（Byte-level BPE） |
+| **`HuggingFaceTB/SmolLM2-360M-Instruct`** | [HuggingFaceTB/SmolLM2-360M-Instruct](https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct) | [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) (商用利用可) | 最軽量（23ms / VRAM 0.7GB）。英語明示タスク向け |
+| **AWQ / 4-bit 量子化モデル** | 例: `TheBloke/Llama-2-7B-AWQ` 等 | 各元モデルのライセンスに準拠 | VRAM 節約環境向け。量子化ヘッドの自動フォールバック |
 
 ## Installation
 
@@ -139,4 +153,6 @@ router = LogitRouter(
 
 ## License
 
-MIT
+本プロジェクトのソースコードは [MIT License](LICENSE) の下で公開されています。
+
+なお、実行時に Hugging Face Hub からダウンロードされる各学習済みモデル重み（Weights）は、各モデル提供元（Google, Alibaba Cloud, Meta, Hugging Face 等）のライセンス条項（Gemma Terms of Use, Apache 2.0, Llama 3.2 Community License 等）に従います。詳細は上記「対応モデルと各ライセンス」の一覧および各モデルカードをご確認ください。
