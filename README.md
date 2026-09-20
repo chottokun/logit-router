@@ -2,24 +2,28 @@
 
 Ultra-low latency LLM-based routing via single forward pass logit extraction.
 
-Qwen モデルの単一フォワードパスで動的選択肢ルーティングを数ミリ秒で実現する Python ライブラリです。
+オープンソースLLM（**Gemma 4**, **Gemma 2**, **Qwen 2.5**, **Llama 系列** 等）の単一フォワードパス（Prefill）から選択肢ロジットを直接抽出し、数ミリ秒〜数十ミリ秒で高精度な動的ルーティングを実現する Python ライブラリです。
 
 ## How It Works（仕組み）
 
 以下の3ステップで構成:
-1. 選択肢を A/B/C... にインデックス射影（BPE トークン分割問題を回避）
-2. Backbone の Prefill フォワードパス1回で末尾隠れ状態を取得（KV キャッシュ無効化）
-3. 事前キャッシュした LM-Head 重みとの内積で候補の確率を算出（Sliced LM-Head）
+1. 選択肢を A/B/C... にインデックス射影（語頭空白処理・BPE/SentencePiece トークン分割問題を自動正規化）
+2. Backbone の Prefill フォワードパス1回で末尾隠れ状態を取得（KV キャッシュ無効化で省メモリ化）
+3. 事前キャッシュした LM-Head 重みとの内積で候補の確率を直接算出（Sliced LM-Head により全語彙射影をバイパス）
 
 図解（テキスト）:
 Input → Prompt Build (A/B/C mapping) → Tokenize → Single Forward Pass → Last Hidden State → Sliced MatMul → Softmax → Result
 
 ## Features
-- 単一フォワードパス（Prefillのみ）による分類処理（自己回帰デコードループをバイパス）
-- Sliced LM-Head による最終線形層の演算量・重みメモリアクセス削減
-- FlashAttention-2 / PyTorch SDPA 自動選択
-- 候補確率分布およびシャノンエントロピーによる不確実性・OOD評価
-- 最大10選択肢の動的ルーティング
+- **単一フォワードパス（Prefillのみ）**: 逐次デコードループを完全バイパスし、通常生成（`model.generate()`）比で 1.6倍〜5.8倍（Gemma 4 で 5.78倍）高速化
+- **多様なモデルファミリー対応**:
+  - **`google/gemma-4-E2B-it`**: 最高精度 95.0% を記録。26.2万語の巨大語彙により日本語複合語（「クレジットカード」等）を1トークンに圧縮
+  - **`Qwen/Qwen2.5` 系列 (0.5B / 1.5B / 3B / 7B)**: 超低遅延（16ms〜35ms）から高精度まで柔軟に選択可能
+  - **`Llama` 系列 / `SmolLM2`**: Byte-level BPE モデルへの対応
+- **Sliced LM-Head 最適化**: 選択肢トークン行のみを行列積計算（語彙256kの場合、最終射影の演算量を 0.001% に削減）
+- **量子化対応**: 4-bit / 8-bit (bitsandbytes) および AWQ 量子化ヘッドの自動フォールバック
+- **バックエンド最適化**: FlashAttention-2 / PyTorch SDPA 自動選択、`torch.compile`（CUDA Graphs）対応
+- **不確実性評価とカスケード**: シャノンエントロピーとロジットマージンによる不確実性検知、2段階カスケード（Tier-1 ゲート $\rightarrow$ Tier-2 フォールバック）
 
 ## Installation
 
@@ -31,6 +35,7 @@ uv add logit-router[dev]    # 開発ツール
 
 ## Quick Start
 
+### 1. 超低遅延ルーティング（Qwen 2.5 1.5B: 約35ms）
 ```python
 from logit_router import LogitRouter
 
@@ -41,6 +46,41 @@ result = router.route(
     choices=["決済・請求窓口", "インフラ保守", "一般サポート"],
 )
 print(result)
+# {'best_choice': '決済・請求窓口', 'best_letter': 'A', 'confidence': 0.982, 'entropy': 0.041, ...}
+```
+
+### 2. 最高精度・日本語特化ルーティング（Gemma 4: 95.0% 精度）
+```python
+router = LogitRouter(model_id="google/gemma-4-E2B-it")
+result = router.route(
+    context="ユーザーの個人情報（氏名、マイナンバー）が含まれている可能性があります。",
+    instruction="適切なセキュリティトリアージ先を選択してください。",
+    choices=["コンプライアンス法務室", "一般サポート", "社内ITヘルプデスク"],
+)
+print(result["best_choice"])  # "コンプライアンス法務室"
+```
+
+### 3. 不確実性に基づくフォールバック（FallbackRouter）
+```python
+from logit_router.optimizations import FallbackRouter
+
+def escalate_to_expert(context, instruction, choices):
+    return {"best_choice": "専門調査チーム", "fallback_triggered": True}
+
+fallback_router = FallbackRouter(
+    router=router,
+    entropy_threshold=0.35,  # エントロピーが高い（迷っている）場合にフォールバック
+    margin_threshold=0.20,   # 上位2つの確率差が僅差の場合にフォールバック
+    fallback_fn=escalate_to_expert,
+)
+```
+
+### 4. 低VRAM環境（4-bit / 8-bit 量子化）
+```python
+router = LogitRouter(
+    model_id="Qwen/Qwen2.5-3B-Instruct",
+    load_in_4bit=True,  # VRAM消費を約75%削減
+)
 ```
 
 ## Benchmark（実機実測値）
