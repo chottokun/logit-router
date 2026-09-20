@@ -40,7 +40,6 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
 class FastJevClassifier:
-
     def __init__(
         self,
         model_id: str = "Qwen/Qwen2.5-7B-Instruct",
@@ -125,15 +124,14 @@ class FastJevClassifier:
         candidate_weights = self.lm_head_weight[target_token_tensor]
 
         # target_logits: (1, Num_Candidates)
-        target_logits = torch.matmul(
-            last_hidden_state, candidate_weights.t()
-        ).squeeze(0)
+        target_logits = torch.matmul(last_hidden_state, candidate_weights.t()).squeeze(
+            0
+        )
 
         # 5. Softmax による正規化確率
         probs = F.softmax(target_logits, dim=-1).cpu().tolist()
 
         return dict(zip(candidate_labels, probs))
-
 ```
 
 ---
@@ -154,7 +152,6 @@ CHOICE_TOKENS = {
     "B": tokenizer.encode(" B", add_special_tokens=False)[0],
     "C": tokenizer.encode(" C", add_special_tokens=False)[0],
 }
-
 ```
 
 ---
@@ -174,7 +171,6 @@ classifier.backbone = torch.compile(
     mode="reduce-overhead",  # カーネル融合と Python オーバーヘッド低減
     fullgraph=False,
 )
-
 ```
 
 #### (2) CUDA Graphs による CPU ディスパッチオーバーヘッドの排除
@@ -227,7 +223,6 @@ torch.cuda.synchronize()
 latency_ms = start_event.elapsed_time(end_event)
 print(f"Latency: {latency_ms:.2f} ms")
 print(f"Result: {result}")
-
 ```
 
 ### アプローチのまとめ

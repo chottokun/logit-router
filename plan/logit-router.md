@@ -37,7 +37,6 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
 class DynamicJevRouter:
-
     def __init__(
         self,
         model_id: str = "Qwen/Qwen2.5-1.5B-Instruct",  # 開発時は 1.5B、実運用は 7B 等
@@ -62,9 +61,7 @@ class DynamicJevRouter:
         try:
             self.model = AutoModelForCausalLM.from_pretrained(
                 model_id,
-                torch_dtype=torch.bfloat16
-                if device == "cuda"
-                else torch.float32,
+                torch_dtype=torch.bfloat16 if device == "cuda" else torch.float32,
                 device_map=self.device,
                 attn_implementation=attn_impl,
             )
@@ -72,9 +69,7 @@ class DynamicJevRouter:
             print("FlashAttention-2 not found. Falling back to default SDPA.")
             self.model = AutoModelForCausalLM.from_pretrained(
                 model_id,
-                torch_dtype=torch.bfloat16
-                if device == "cuda"
-                else torch.float32,
+                torch_dtype=torch.bfloat16 if device == "cuda" else torch.float32,
                 device_map=self.device,
                 attn_implementation="sdpa",
             )
@@ -83,9 +78,7 @@ class DynamicJevRouter:
         self.backbone = self.model.model
 
         # 3. A〜Z のトークン ID と LM-Head 重みの事前キャッシュ
-        self.choice_letters = [
-            chr(ord("A") + i) for i in range(self.max_choices)
-        ]
+        self.choice_letters = [chr(ord("A") + i) for i in range(self.max_choices)]
 
         # Qwen トークナイザで先頭空白付きトークン (" A", " B", ...) の ID を取得
         self.choice_token_ids = [
@@ -173,9 +166,7 @@ if __name__ == "__main__":
     # 動作確認とレイテンシ測定
     router = DynamicJevRouter(model_id="Qwen/Qwen2.5-1.5B-Instruct")
 
-    test_context = (
-        "Stripe webhook failed with status code 403. Invalid API secret key."
-    )
+    test_context = "Stripe webhook failed with status code 403. Invalid API secret key."
     test_instruction = "担当チームにトリアージしてください。"
     test_choices = ["決済・請求窓口", "インフラ保守", "一般サポート"]
 
@@ -216,7 +207,6 @@ if __name__ == "__main__":
     print(
         f"Average Latency: {avg_latency:.2f} ms (Min: {min(latencies):.2f} ms, Max: {max(latencies):.2f} ms)"
     )
-
 ```
 
 ---

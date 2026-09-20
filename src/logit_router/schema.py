@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+
 @dataclass
 class RouteRequest:
     """
@@ -11,10 +12,12 @@ class RouteRequest:
         choices: 選択肢のリスト。
         temperature: 生成時の温度パラメータ（デフォルト値は1.0）。
     """
+
     context: str
     instruction: str
     choices: list[str]
     temperature: float = 1.0
+
 
 @dataclass
 class RouteResult:
@@ -28,6 +31,7 @@ class RouteResult:
         entropy: エントロピー（低いほど確信度が高い）。
         distribution: 全選択肢の確率分布。
     """
+
     best_choice: str
     best_letter: str
     confidence: float
@@ -35,9 +39,11 @@ class RouteResult:
     distribution: dict[str, float]
 
     def is_confident(self, threshold: float = 0.7) -> bool:
-        '''confidence が threshold 以上なら True を返す'''
+        """confidence が threshold 以上なら True を返す"""
         return self.confidence >= threshold
 
     def needs_fallback(self, entropy_threshold: float = 0.9) -> bool:
-        '''entropy が entropy_threshold を超えたら True を返す（判定に迷っている状態）'''
+        """
+        entropy が entropy_threshold を超えたら True を返す（判定に迷っている状態）
+        """
         return self.entropy > entropy_threshold

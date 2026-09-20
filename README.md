@@ -34,11 +34,11 @@ uv add logit-router[dev]    # 開発ツール
 ```python
 from logit_router import LogitRouter
 
-router = LogitRouter(model_id='Qwen/Qwen2.5-1.5B-Instruct')
+router = LogitRouter(model_id="Qwen/Qwen2.5-1.5B-Instruct")
 result = router.route(
-    context='Stripe webhook failed with status code 403.',
-    instruction='担当チームにトリアージしてください。',
-    choices=['決済・請求窓口', 'インフラ保守', '一般サポート'],
+    context="Stripe webhook failed with status code 403.",
+    instruction="担当チームにトリアージしてください。",
+    choices=["決済・請求窓口", "インフラ保守", "一般サポート"],
 )
 print(result)
 ```

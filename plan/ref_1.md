@@ -33,7 +33,6 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
 class DynamicJevRouter:
-
     def __init__(
         self,
         model_id: str = "Qwen/Qwen2.5-7B-Instruct",
@@ -55,9 +54,7 @@ class DynamicJevRouter:
         self.backbone = self.model.model
 
         # 2. A〜Z のトークン ID と LM-Head 重みを事前キャッシュ（ゼロオーバーヘッド化）
-        self.choice_letters = [
-            chr(ord("A") + i) for i in range(self.max_choices)
-        ]
+        self.choice_letters = [chr(ord("A") + i) for i in range(self.max_choices)]
         # Qwen トークナイザで " A", " B" などの単一トークン ID を取得
         self.choice_token_ids = [
             self.tokenizer.encode(f" {letter}", add_special_tokens=False)[0]
@@ -129,9 +126,7 @@ class DynamicJevRouter:
         probs = F.softmax(scaled_logits, dim=-1).cpu().tolist()
 
         # 7. 判定結果の整理と信頼度指標の算出
-        results = {
-            choices[i]: round(probs[i], 4) for i in range(num_choices)
-        }
+        results = {choices[i]: round(probs[i], 4) for i in range(num_choices)}
         best_index = int(torch.argmax(logits).item())
 
         # エントロピー計算（値が低いほど確信度が高い）
@@ -144,7 +139,6 @@ class DynamicJevRouter:
             "entropy": round(entropy, 4),
             "distribution": results,
         }
-
 ```
 
 ---
@@ -173,7 +167,6 @@ print(res1)
 #   'entropy': 0.3812,
 #   'distribution': {'決済・請求窓口': 0.8842, 'システム障害対応': 0.0821, '一般的な操作案内': 0.0337}
 # }
-
 ```
 
 #### ユースケース B: エージェントの動的ツールルーティング
@@ -199,7 +192,6 @@ print(res2)
 #   'entropy': 0.6954,
 #   'distribution': { ... }
 # }
-
 ```
 
 ---
