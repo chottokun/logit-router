@@ -54,17 +54,17 @@ flowchart TD
 
 ## Supported Models & Licenses / 対応モデルと各ライセンス
 
-本コードで検証済みの代表的モデルおよび Hugging Face リンク、各ライセンスの一覧です。本リポジトリ自体は **MIT ライセンス** ですが、モデル重みは同梱しておらず、実行時に Hugging Face Hub からロードされます。各モデルの利用規約・ライセンスをご確認の上でご利用ください。
+本コードで動作検証・アーキテクチャ対応済みの代表的モデルおよび Hugging Face リンク、各ライセンスの一覧です（※ 下部の「Benchmark」セクションには、実機にて網羅的ベンチマーク測定を完了した 5 モデルの実測値を掲載しています）。本リポジトリ自体は **MIT ライセンス** ですが、モデル重みは同梱しておらず、実行時に Hugging Face Hub からロードされます。各モデルの利用規約・ライセンスをご確認の上でご利用ください。
 
-| モデル名 / Model ID | Hugging Face リンク | ライセンス / License | 特徴・推奨用途 |
-| :--- | :--- | :--- | :--- |
-| **`google/gemma-4-E2B-it`** | [google/gemma-4-E2B-it](https://huggingface.co/google/gemma-4-E2B-it) | [Gemma Terms of Use](https://ai.google.dev/gemma/terms) (商用利用可) | **最高精度（95.0%）**。26.2万語彙による日本語複合語圧縮 |
-| **`Qwen/Qwen2.5-1.5B-Instruct`** | [Qwen/Qwen2.5-1.5B-Instruct](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct) | [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) (商用利用可) | **超低遅延（約35ms）**。第1層カスケードゲートに最適 |
-| **`Qwen/Qwen2.5-3B-Instruct`** | [Qwen/Qwen2.5-3B-Instruct](https://huggingface.co/Qwen/Qwen2.5-3B-Instruct) | [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) (商用利用可) | バランス型（85.0% 精度 / 62ms 遅延） |
-| **`Qwen/Qwen2.5-0.5B-Instruct`** | [Qwen/Qwen2.5-0.5B-Instruct](https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct) | [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) (商用利用可) | 最速（約16ms / VRAM 0.96GB）。構文判定向け |
-| **`meta-llama/Llama-3.2-1B-Instruct`** | [meta-llama/Llama-3.2-1B-Instruct](https://huggingface.co/meta-llama/Llama-3.2-1B-Instruct) | [Llama 3.2 Community](https://llama.meta.com/llama3/license/) (商用利用可) | Llama エコシステム対応（Byte-level BPE） |
-| **`HuggingFaceTB/SmolLM2-360M-Instruct`** | [HuggingFaceTB/SmolLM2-360M-Instruct](https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct) | [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) (商用利用可) | 最軽量（23ms / VRAM 0.7GB）。英語明示タスク向け |
-| **AWQ / 4-bit 量子化モデル** | 例: `TheBloke/Llama-2-7B-AWQ` 等 | 各元モデルのライセンスに準拠 | VRAM 節約環境向け。量子化ヘッドの自動フォールバック |
+| モデル名 / Model ID | Hugging Face リンク | ライセンス / License | 特徴・推奨用途 | 実機ベンチマーク |
+| :--- | :--- | :--- | :--- | :--- |
+| **`google/gemma-4-E2B-it`** | [google/gemma-4-E2B-it](https://huggingface.co/google/gemma-4-E2B-it) | [Gemma Terms of Use](https://ai.google.dev/gemma/terms) (商用利用可) | **最高精度（95.0%）**。26.2万語彙による日本語複合語圧縮 | **測定済 (100問)** |
+| **`Qwen/Qwen2.5-1.5B-Instruct`** | [Qwen/Qwen2.5-1.5B-Instruct](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct) | [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) (商用利用可) | **超低遅延（約35ms）**。第1層カスケードゲートに最適 | **測定済 (100問)** |
+| **`Qwen/Qwen2.5-3B-Instruct`** | [Qwen/Qwen2.5-3B-Instruct](https://huggingface.co/Qwen/Qwen2.5-3B-Instruct) | [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) (商用利用可) | バランス型（85.0% 精度 / 62ms 遅延） | **測定済 (100問)** |
+| **`Qwen/Qwen2.5-0.5B-Instruct`** | [Qwen/Qwen2.5-0.5B-Instruct](https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct) | [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) (商用利用可) | 最速（約16ms / VRAM 0.96GB）。構文判定向け | **測定済 (100問)** |
+| **`HuggingFaceTB/SmolLM2-360M-Instruct`** | [HuggingFaceTB/SmolLM2-360M-Instruct](https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct) | [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) (商用利用可) | 最軽量（23ms / VRAM 0.7GB）。英語明示タスク向け | **測定済 (100問)** |
+| **`meta-llama/Llama-3.2-1B-Instruct`** | [meta-llama/Llama-3.2-1B-Instruct](https://huggingface.co/meta-llama/Llama-3.2-1B-Instruct) | [Llama 3.2 Community](https://llama.meta.com/llama3/license/) (商用利用可) | Llama エコシステム対応（Byte-level BPE） | コード動作確認済 |
+| **AWQ / 4-bit 量子化モデル** | 例: `TheBloke/Llama-2-7B-AWQ` 等 | 各元モデルのライセンスに準拠 | VRAM 節約環境向け。量子化ヘッドの自動フォールバック | コード動作確認済 |
 
 ## Installation
 
@@ -129,15 +129,17 @@ router = LogitRouter(
 以下の数値は、ローカル環境（NVIDIA GeForce RTX 3060 12GB, PyTorch 2.x SDPA, bfloat16, batch_size=1）において実スクリプトを実行して計測された実測値です。推測値や未測定データは一切含みません。
 
 ### 1. 通常生成（`model.generate()`）との直接対決実測
-各モデル同一のプロンプト・選択肢条件において、通常の自己回帰生成と LogitRouter の実行レイテンシを直接比較した実機実測値です（詳細は [比較レポート](benchmarks/reports/comparison_vs_generation_report.md) 参照）：
+同一の入力プロンプト・選択肢条件において、標準の自己回帰生成（Hugging Face `model.generate()` 最短1文字指示）と LogitRouter の実行レイテンシを直接比較した A/B 実機実測値です（詳細は [比較レポート](benchmarks/reports/comparison_vs_generation_report.md) 参照）：
 
-| モデル | 通常生成 (`generate()`) | **LogitRouter** | 高速化倍率 | 備考 |
+| モデル | 通常生成 (`generate()` p50 / Mean) | **LogitRouter (p50 / Mean)** | 高速化倍率 (p50比) | 備考 |
 |---|---|---|---|---|
-| **`google/gemma-4-E2B-it`** | 621.49 ms | **103.88 ms** (p50: 67.8 ms) | **5.78x 高速化** | 語彙 256k の射影削減効果が最大 |
-| `Qwen/Qwen2.5-3B-Instruct` | 200.42 ms | **85.04 ms** (p50: 62.8 ms) | **2.36x 高速化** | 精度と速度のバランス型 |
-| `Qwen/Qwen2.5-1.5B-Instruct` | 206.74 ms | **90.33 ms** (p50: 34.8 ms) | **2.32x 高速化** | 第1層ゲートに最適 |
-| `Qwen/Qwen2.5-0.5B-Instruct` | 101.96 ms | **50.65 ms** (p50: 16.3 ms) | **1.64x 高速化** | 最軽量・低VRAM（0.95GB） |
-| `HuggingFaceTB/SmolLM2-360M-Instruct` | 133.01 ms | **25.97 ms** (p50: 23.8 ms) | **4.72x 高速化** | 最速だが日本語・複合推論に課題 |
+| **`google/gemma-4-E2B-it`** | 621.49 ms / 628.16 ms | **103.88 ms** / 108.71 ms | **5.78x 高速化** | 語彙 262k の射影削減効果が最大 |
+| `Qwen/Qwen2.5-3B-Instruct` | 200.42 ms / 228.07 ms | **85.04 ms** / 96.45 ms | **2.36x 高速化** | 精度と速度のバランス型 |
+| `Qwen/Qwen2.5-1.5B-Instruct` | 206.74 ms / 241.02 ms | **90.33 ms** / 103.70 ms | **2.32x 高速化** | 第1層ゲートに最適 |
+| `Qwen/Qwen2.5-0.5B-Instruct` | 101.96 ms / 97.86 ms | **50.65 ms** / 59.49 ms | **1.64x 高速化** | 最軽量・低VRAM（0.96GB） |
+| `HuggingFaceTB/SmolLM2-360M-Instruct` | 133.01 ms / 131.90 ms | **25.97 ms** / 27.95 ms | **4.72x 高速化** | 最速だが日本語・複合推論に課題 |
+
+※ 100問の実務データセット全体を通した総合遅延（中央値 p50）は、下記の「2. 10大ドメイン・計100問の深層評価マトリクス」をご覧ください（例: Gemma 4 は 67.83 ms、Qwen 1.5B は 34.84 ms）。
 
 ### 2. 10大ドメイン・計100問の深層評価マトリクス
 多様な業務課題（ツール選択、PII、曖昧性、多言語、緊急度トリアージ等）100問による実機評価（詳細は [100問深層評価レポート](benchmarks/reports/deep_eval_report.md) 参照）：
