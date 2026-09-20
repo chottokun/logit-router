@@ -19,4 +19,6 @@
 * **Structured Outputs & Generation Mode Analysis**:
   - `docs/architecture/single_forward_pass_routing.md`: JSON Schema / Pydantic / Function Calling 等の構造化出力（Structured Outputs）が抱える生成トークン数の肥大化（35〜60+ tokens）および文法制約（Logit Masking）のオーバーヘッドを定式化し、LogitRouter のゼロトークン抽出による 10x〜20x+ 高速化の理論的根拠を文書化。
   - `benchmarks/reports/comparison_vs_generation_report.md` & `docs/references/comparison_vs_generation_report.md`: 「最短1文字（max_tokens=5）」と「簡潔推論（max_tokens=30）」の定義・条件、高指示追従モデルにおける Early Stop（早期終了）現象、および Structured Output 適用時の速度格差を追記。
+* **Router Implementation Details Documentation**:
+  - `docs/domain/router_implementation_details.md`: `src/logit_router/router.py` および `optimizations.py` のコードレベル実装仕様書を新設。トークナイザー空白処理分岐（Gemma vs Qwen/BPE）、アテンション自動フォールバック（SDPA / FlashAttention-2）、LM-Head重みスライス事前固定とAWQ量子化ヘッドのデュアルモード対応、および `torch.compile` 最適化仕様を文書化。
 

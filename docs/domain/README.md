@@ -28,11 +28,15 @@ The Domain models define the core data structures and primitive operations of th
 - **RouteResult**: Captures the best choice along with confidence, entropy, and the full probability distribution.
 - **Fallback Evaluation**: Methods embedded within `RouteResult` that evaluate entropy and confidence to determine if a fallback strategy (like triggering a larger model or using full Chain-of-Thought) is required.
 
-For details, refer to [Routing Primitives](routing_primitives.md).
+For details, refer to:
+- [Routing Primitives](routing_primitives.md)
+- [Router Implementation Details](router_implementation_details.md)
 
 **[Japanese]**
 - **RouteRequest**: ルーティングのためのコンテキスト、指示、および利用可能な選択肢をカプセル化します。
 - **RouteResult**: 最適な選択肢とともに、確信度、エントロピー、および完全な確率分布をキャプチャします。
 - **フォールバック評価**: `RouteResult` に組み込まれたメソッドで、エントロピーと確信度を評価し、フォールバック戦略（より大きなモデルのトリガーや完全な Chain-of-Thought の使用など）が必要かどうかを判断します。
 
-詳細については、[Routing Primitives](routing_primitives.md) を参照してください。
+詳細仕様は以下を参照してください：
+- [Routing Primitives (ルーティング・プリミティブ)](routing_primitives.md)
+- [Router Implementation Details (LogitRouter 実装詳細仕様)](router_implementation_details.md)
