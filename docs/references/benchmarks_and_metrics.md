@@ -129,3 +129,22 @@ A routing decision is certified as high certainty only when $H(P) < \tau_H$ AND 
    $$\Delta z = z_{(1)} - z_{(2)}$$
 
 判定が確定（高確信）とされるのは、$H(P) < \tau_H$ かつ $\Delta z > \tau_M$ の双方を満たす場合に限られます。確信が持てない曖昧なクエリは、自動的に第2層の高精度モデル（`google/gemma-4-E2B-it`）へエスカレーションされます。アーキテクチャの詳細は [Cascade Routing & Critical Analysis (カスケードルーティングと批判的分析)](../architecture/cascade_routing_and_critical_analysis.md) を参照してください。
+
+## Quantization Evaluation Protocol / 量子化モデル評価プロトコル
+
+**[English]**
+To validate resource-constrained deployment feasibility, the benchmark suite evaluates 4-bit quantized variants (`bench_quantization_matrix.py`) across three core axes:
+1. **Accuracy Retention Rate**: Measures classification retention against FP16/BF16 baselines across 100 domain cases.
+   $$\text{Retention} = \frac{\text{Accuracy}_{\text{quantized}}}{\text{Accuracy}_{\text{baseline}}}$$
+   (e.g., Gemma 4 4-bit retains $91.0\% / 95.0\% = 95.8\%$ relative accuracy).
+2. **Memory Footprint (Peak VRAM)**: Peak CUDA memory allocated during prefill forward passes (`torch.cuda.max_memory_allocated()`), assessing fit within consumer GPUs (<8GB / <12GB).
+3. **Inference Latency & Dequantization Overhead**: Evaluating whether custom kernels (e.g., Marlin FP16 GEMM in AWQ) achieve acceleration vs. whether dynamic weight unpacks (bitsandbytes) incur latency trade-offs.
+
+**[Japanese]**
+リソース制約環境における実用性を検証するため、ベンチマークスイート（`bench_quantization_matrix.py`）では 4-bit 量子化モデルを以下の3軸で評価します：
+1. **精度保持率（Accuracy Retention）**: 100問の実務データセットにおいて、FP16/BF16 ベースラインに対する正解率の保持度を測定。
+   $$\text{保持比率} = \frac{\text{正解率}_{\text{量子化}}}{\text{正解率}_{\text{ベースライン}}}$$
+   （例: Gemma 4 4-bit は $91.0\% / 95.0\% = 95.8\%$ の相対精度を維持）。
+2. **メモリ占有量（ピーク VRAM）**: Prefill フォワードパス中に確保された最大 CUDA メモリ（`torch.cuda.max_memory_allocated()`）を測定し、コンシューマ向け GPU（8GB〜12GB 未満）での収容性を検証。
+3. **推論遅延と逆量子化オーバーヘッド**: Marlin カーネル等の最適化 GEMM による高速化効果（AWQ）と、実行時動的アンパックによる遅延トレードオフ（bitsandbytes）を実測・比較。
+実測レポートの詳細は [Quantization Benchmark Report (4-bit & AWQ)](quantization_matrix_report.md) を参照してください。
