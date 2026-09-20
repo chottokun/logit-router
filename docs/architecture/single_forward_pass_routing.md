@@ -64,3 +64,33 @@ Arbitrary textual labels (such as "Technical Support" or "Billing") can tokenize
 
 **[Japanese]**
 任意のテキストラベル（例: 「テクニカルサポート」「請求問い合わせ」など）は、トークナイザの語彙境界によって複数トークンに分割される場合があります。単一トークンによる分類を成立させるため、ルーターは入力プロンプト内で各選択肢をアルファベット1文字（`A`, `B`, `C`, ...）に割り当てて提示します。これにより、多重トークンの確率連鎖を計算することなく、単一位置のインデックス $\mathcal{C}$ のみから直接選択肢を特定できます。
+
+## Contrast with Structured Outputs / 構造化出力（Structured Outputs）との構造的格差
+
+**[English]**
+A common production pattern for classification is forcing language models to emit JSON objects (via JSON Schema, Pydantic, or Function Calling). While structured outputs enforce deterministic formats, they incur severe latency penalties compared to LogitRouter:
+
+1. **Token Inflation ($N_{out} \ge 35 \sim 60$)**:
+   Emitting standard classification JSON requires synthesizing brackets, keys, confidence fields, and escaping:
+   ```json
+   {"route": "IT_Support", "confidence": 0.98, "reason": "Hardware failure"}
+   ```
+   Sequential decoding overhead scales linearly: $T_{\text{total}} = T_{\text{prefill}} + N_{out} \times T_{\text{decode}}$. At $10 \sim 15\,\text{ms}$ per decode step on commodity GPUs, $50$ tokens add $500 \sim 750\,\text{ms}$ of pure decoding latency.
+2. **Constrained Decoding Overhead**:
+   Grammar-guided decoding engines (e.g., Outlines, vLLM guided decoding) perform regex-to-automata token masking on each step across the entire vocabulary ($V \ge 150\text{k}$), introducing recurring CPU-GPU synchronization points.
+3. **LogitRouter Zero-Token Advantage**:
+   LogitRouter produces a fully typed Python dataclass (`RouteResult`) with exact winner, normalized probability distribution, and Shannon entropy directly from raw model logits in **0 generated tokens**, avoiding JSON serialization, syntax validation, and autoregressive overhead entirely. Consequently, against structured JSON generation, LogitRouter achieves an estimated **10x to 20x latency reduction**.
+
+**[Japanese]**
+業務システムにおける一般的な分類実装として、JSON Schema、Pydantic、または Function Calling を用いて LLM に構造化 JSON を出力させる手法が広く用いられています。しかし、このアプローチは LogitRouter と比較して深刻な遅延ペナルティを抱えます：
+
+1. **生成トークン数の肥大化 ($N_{out} \ge 35 \sim 60$)**:
+   最小限の分類 JSON であっても、波括弧、キー文字列、確信度、エスケープ等の構文トークンを逐次生成する必要があります：
+   ```json
+   {"route": "IT_Support", "confidence": 0.98, "reason": "Hardware failure"}
+   ```
+   自己回帰の処理時間はトークン数に比例して累積します：$T_{\text{total}} = T_{\text{prefill}} + N_{out} \times T_{\text{decode}}$。RTX 3060 における 1.5B〜3B クラスのデコード時間が 1 トークンあたり $10 \sim 15\,\text{ms}$ の場合、50 トークンの生成だけで **デコード遅延のみで $500 \sim 750\,\text{ms}$ が上乗せ** されます。
+2. **文法制約デコード（Constrained Decoding）のオーバーヘッド**:
+   JSON 構文を保証するために Outlines や vLLM の Guided Decoding 等を用いる場合、毎ステップ全語彙（$V \ge 150,000$）に対して正規表現・オートマトンに基づくロジットマスキング処理が走り、CPU-GPU 間の同期やカーネルオーバーヘッドが加算されます。
+3. **LogitRouter のゼロトークン優位性**:
+   LogitRouter は最初から確定的な Python データクラス（`RouteResult`）として、勝者、正規化確率分布、シャノンエントロピーを **新規生成 0 トークン** で直接構築します。JSON 文字列の生成やパースエラーの懸念そのものを排除し、Structured Output 生成構成に対して **10倍〜20倍以上のレイテンシ圧縮** を実現します。

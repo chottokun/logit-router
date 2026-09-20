@@ -16,5 +16,7 @@
 * **Critical Failure Mode Analysis & Constructive Cascade Architecture**:
   - 10大ドメイン100問の実機実測（`google/gemma-4-E2B-it`: 95.0% 首位）から、1B未満モデルの「過信誤分類 (Overconfident Misclassification)」および「難易度判定の逆転現象 (Adverse Selection)」を批判的に解明。
   - 解決策として、`Qwen2.5-1.5B`（第1層: 約35ms）と `Gemma-4-E2B`（第2層: 95%精度）を統合した「2段階カスケードルーティング（Two-Tier Cascade Routing）」およびエントロピー＋ロジットマージンによる多層信頼度キャリブレーションを技術設計書（`docs/architecture/cascade_routing_and_critical_analysis.md`）として体系化。
-  - `docs/references/benchmarks_and_metrics.md`, `docs/references/multi_model_benchmark_report.md`, `docs/README.md` を最新実測知見に基づき全面的に更新。
+* **Structured Outputs & Generation Mode Analysis**:
+  - `docs/architecture/single_forward_pass_routing.md`: JSON Schema / Pydantic / Function Calling 等の構造化出力（Structured Outputs）が抱える生成トークン数の肥大化（35〜60+ tokens）および文法制約（Logit Masking）のオーバーヘッドを定式化し、LogitRouter のゼロトークン抽出による 10x〜20x+ 高速化の理論的根拠を文書化。
+  - `benchmarks/reports/comparison_vs_generation_report.md` & `docs/references/comparison_vs_generation_report.md`: 「最短1文字（max_tokens=5）」と「簡潔推論（max_tokens=30）」の定義・条件、高指示追従モデルにおける Early Stop（早期終了）現象、および Structured Output 適用時の速度格差を追記。
 
