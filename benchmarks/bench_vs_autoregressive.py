@@ -76,7 +76,7 @@ def benchmark_autoregressive_vs_logit_router(
     for i, case in enumerate(test_cases):
         # --- Measure LogitRouter ---
         start_event.record()
-        res = router.route(case["context"], case["instruction"], case["choices"])
+        _res = router.route(case["context"], case["instruction"], case["choices"])
         end_event.record()
         torch.cuda.synchronize()
         logit_latencies.append(start_event.elapsed_time(end_event))
@@ -142,6 +142,7 @@ def main():
     cases = all_cases[:20]
 
     models = [
+        "google/gemma-4-E2B-it",
         "Qwen/Qwen2.5-0.5B-Instruct",
         "Qwen/Qwen2.5-1.5B-Instruct",
         "Qwen/Qwen2.5-3B-Instruct",

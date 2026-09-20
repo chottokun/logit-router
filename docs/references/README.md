@@ -34,6 +34,7 @@ For details on profiling protocols and metrics, refer to:
 - [Deep Evaluation Suite Specification](deep_benchmarks_specification.md)
 
 Empirical on-device reports:
+- [Deep 10-Domain Benchmark Report](deep_eval_report.md) (100 cases across 5 models, Gemma 4: 95.0% accuracy)
 - [Comparison vs Standard Generation](comparison_vs_generation_report.md) (LogitRouter vs model.generate speedup)
 - [Multi-Model Benchmark Report](multi_model_benchmark_report.md) (0.5B vs 1.5B vs 3B latency & accuracy)
 - [Cross-Model Robustness Report](robustness_matrix_report.md) (Permutation consistency & OOD separation)
@@ -49,6 +50,7 @@ Empirical on-device reports:
 - [Deep Evaluation Suite Specification (深層評価スイート仕様書)](deep_benchmarks_specification.md)
 
 実機実測レポート：
+- [Deep 10-Domain Benchmark Report (10大ドメイン100問深層実機評価レポート)](deep_eval_report.md) (Gemma 4 で正解率 95.0% 実証)
 - [Comparison vs Standard Generation (通常生成との実機比較実測レポート)](comparison_vs_generation_report.md)
 - [Multi-Model Benchmark Report (複数モデル横断実機比較レポート)](multi_model_benchmark_report.md)
 - [Cross-Model Robustness Report (モデル別頑健性・位置バイアス実機評価レポート)](robustness_matrix_report.md)

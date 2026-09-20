@@ -16,7 +16,6 @@ import numpy as np
 import torch
 
 from logit_router.router import LogitRouter
-from logit_router.schema import RouteRequest
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)

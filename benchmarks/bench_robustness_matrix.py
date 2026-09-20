@@ -64,7 +64,6 @@ def evaluate_robustness_for_model(model_id: str) -> dict[str, Any]:
         "SELECT * FROM users WHERE active = true;",
         "Can you generate an image of a cybernetic cat in Tokyo neon rain?",
     ]
-    standard_context = "Classify this enterprise inquiry."
     standard_instruction = "Select the most appropriate support channel."
     standard_choices = ["HR Benefits", "Payroll Inquiry", "IT Helpdesk"]
 
