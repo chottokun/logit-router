@@ -12,6 +12,7 @@ dependencies = [
     "bitsandbytes>=0.50.2",
     "autoawq>=0.2.9",
     "gptqmodel>=7.5.0",
+    "torchvision>=0.29.0",
 ]
 
 [project.optional-dependencies]
