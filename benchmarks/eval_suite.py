@@ -39,7 +39,7 @@ def main():
     parser.add_argument(
         "--dataset",
         type=str,
-        default="benchmarks/data/eval_cases.json",
+        default="benchmarks/data/jp_large_eval_cases.json",
         help="データセットのパス",
     )
     parser.add_argument(

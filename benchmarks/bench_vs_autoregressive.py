@@ -134,7 +134,7 @@ def benchmark_autoregressive_vs_logit_router(
 
 
 def main():
-    data_path = Path("benchmarks/data/eval_cases.json")
+    data_path = Path("benchmarks/data/jp_large_eval_cases.json")
     with open(data_path, encoding="utf-8") as f:
         all_cases = json.load(f)
 

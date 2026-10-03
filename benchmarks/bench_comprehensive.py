@@ -156,7 +156,7 @@ def generate_markdown_report(
         "tags: [benchmarks, multi-model, latency, accuracy, on-device]",
         "sources:",
         "  - benchmarks/bench_comprehensive.py",
-        "  - benchmarks/data/eval_cases.json",
+        "  - benchmarks/data/jp_large_eval_cases.json",
         "---",
         "",
         "# Multi-Model Benchmark Comparison Report / 複数モデル横断実機ベンチマーク比較レポート",
@@ -219,7 +219,7 @@ def generate_markdown_report(
 
 
 def main() -> None:
-    data_path = Path("benchmarks/data/eval_cases.json")
+    data_path = Path("benchmarks/data/jp_large_eval_cases.json")
     if not data_path.exists():
         raise FileNotFoundError(f"Test cases not found at {data_path}")
 

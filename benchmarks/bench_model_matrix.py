@@ -68,7 +68,7 @@ def main():
 
     dataset_path = Path(args.dataset)
     if not dataset_path.exists():
-        fallback_path = Path("benchmarks/data/eval_cases.json")
+        fallback_path = Path("benchmarks/data/jp_large_eval_cases.json")
         if fallback_path.exists():
             print(f"Dataset {dataset_path} not found. Using fallback {fallback_path}.")
             dataset_path = fallback_path
