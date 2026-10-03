@@ -43,3 +43,9 @@ This documentation describes the Logit Router system conforming to the Open Know
   - 主要ドキュメント: [Deep 10-Domain Benchmark Report (10大ドメイン100問深層実機評価レポート)](references/deep_eval_report.md)
   - 主要ドキュメント: [Comparison vs Generation Report (通常生成との速度・レイテンシ比較レポート)](references/comparison_vs_generation_report.md)
   - 主要ドキュメント: [Quantization Benchmark Report (4-bit / AWQ 量子化実機評価レポート)](references/quantization_matrix_report.md)
+- [Qwen3.5-0.8B-Japanese-SFT-v2 Evaluation Report (実機ベンチマークレポート)](./benchmarks/reports/japanese_sft_v2_report.md)
+
+## Update
+
+* Added support for `Takenoko12345678/Qwen3.5-0.8B-Japanese-SFT-v2` and its GGUF variants.
+* GGUF models can be loaded by passing `gguf_file` when instantiating `LogitRouter`.

@@ -37,6 +37,9 @@ def main():
         "--model", type=str, default="Qwen/Qwen2.5-1.5B-Instruct", help="モデルID"
     )
     parser.add_argument(
+        "--gguf-file", type=str, default=None, help="GGUFファイル"
+    )
+    parser.add_argument(
         "--dataset",
         type=str,
         default="benchmarks/data/jp_large_eval_cases.json",
@@ -77,7 +80,7 @@ def main():
 
     # ルーターの初期化
     console.print("[cyan]モデルを初期化中...[/cyan]")
-    router = LogitRouter(model_id=args.model, device=args.device)
+    router = LogitRouter(model_id=args.model, device=args.device, gguf_file=args.gguf_file)
 
     results = []
     failure_cases = []

@@ -35,7 +35,7 @@ def main():
         "--models",
         type=str,
         default="Qwen/Qwen2.5-0.5B-Instruct,Qwen/Qwen2.5-1.5B-Instruct",
-        help="Comma-separated list of model IDs to benchmark",
+        help="Comma-separated list of model IDs to benchmark (use model_id::gguf_file for GGUF)",
     )
     parser.add_argument(
         "--dataset",
@@ -99,7 +99,13 @@ def main():
             torch.cuda.reset_peak_memory_stats()
             torch.cuda.empty_cache()
 
-        router = LogitRouter(model_id=model_id, device=args.device)
+        # Parse potential gguf config (model_id:gguf_file)
+        actual_model_id = model_id
+        gguf_file = None
+        if "::" in model_id:
+            actual_model_id, gguf_file = model_id.split("::", 1)
+
+        router = LogitRouter(model_id=actual_model_id, device=args.device, gguf_file=gguf_file)
 
         latencies = []
         correct_count = 0

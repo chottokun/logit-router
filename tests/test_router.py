@@ -206,9 +206,13 @@ def test_gemma_tokenizer(mock_router):
         mock_tok_inst.encode.assert_any_call("A", add_special_tokens=False)
         mock_tok_inst.encode.assert_any_call("B", add_special_tokens=False)
 
-        LogitRouter(model_id="Qwen/Qwen2.5-1.5B", device="cpu", max_choices=2)
+        LogitRouter(model_id="google/bert-base", device="cpu", max_choices=2)
         mock_tok_inst.encode.assert_any_call(" A", add_special_tokens=False)
         mock_tok_inst.encode.assert_any_call(" B", add_special_tokens=False)
+
+        LogitRouter(model_id="Qwen/Qwen2.5-1.5B", device="cpu", max_choices=2)
+        mock_tok_inst.encode.assert_any_call("A", add_special_tokens=False)
+        mock_tok_inst.encode.assert_any_call("B", add_special_tokens=False)
 
 def test_awq_quantized_head(mock_router):
     with patch("logit_router.router.AutoTokenizer") as mock_tokenizer, \

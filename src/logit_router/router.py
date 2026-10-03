@@ -15,6 +15,7 @@ class LogitRouter:
         load_in_8bit: bool = False,
         device_map: str | dict | None = None,
         is_awq: bool = False,
+        gguf_file: str | None = None,
     ):
         if device is None:
             self.device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -22,10 +23,16 @@ class LogitRouter:
             self.device = device
 
         self.max_choices = max_choices
-        self.tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast=True)
+        if gguf_file is not None:
+            self.tokenizer = AutoTokenizer.from_pretrained(
+                model_id, gguf_file=gguf_file, use_fast=True
+            )
+        else:
+            self.tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast=True)
 
         is_awq_model = is_awq or "awq" in model_id.lower()
         is_gemma2 = "gemma" in model_id.lower()
+        is_qwen = "qwen" in model_id.lower()
 
         dtype = (
             "auto"
@@ -55,6 +62,8 @@ class LogitRouter:
             "torch_dtype": dtype,
             "device_map": final_device_map,
         }
+        if gguf_file is not None:
+            model_kwargs["gguf_file"] = gguf_file
         if quantization_config is not None:
             model_kwargs["quantization_config"] = quantization_config
 
@@ -77,7 +86,7 @@ class LogitRouter:
 
         self.choice_letters = [chr(ord("A") + i) for i in range(max_choices)]
 
-        if is_gemma2:
+        if is_gemma2 or is_qwen:
             self.choice_token_ids = [
                 self.tokenizer.encode(letter, add_special_tokens=False)[-1]
                 for letter in self.choice_letters

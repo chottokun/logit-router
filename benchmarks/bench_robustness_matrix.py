@@ -24,7 +24,13 @@ logger = logging.getLogger(__name__)
 def evaluate_robustness_for_model(model_id: str) -> dict[str, Any]:
     logger.info(f"Loading {model_id} for robustness testing...")
     torch.cuda.empty_cache()
-    router = LogitRouter(model_id=model_id, device="cuda")
+
+    actual_model_id = model_id
+    gguf_file = None
+    if "::" in model_id:
+        actual_model_id, gguf_file = model_id.split("::", 1)
+
+    router = LogitRouter(model_id=actual_model_id, device="cuda", gguf_file=gguf_file)
 
     # 1. Position Bias: Customer Support Permutations (6 perms)
     context1 = "I was charged twice for my subscription this month. Please help."
@@ -89,11 +95,17 @@ def evaluate_robustness_for_model(model_id: str) -> dict[str, Any]:
 
 
 def main():
-    models = [
-        "Qwen/Qwen2.5-0.5B-Instruct",
-        "Qwen/Qwen2.5-1.5B-Instruct",
-        "Qwen/Qwen2.5-3B-Instruct",
-    ]
+    import argparse
+    parser = argparse.ArgumentParser(description="Robustness Benchmark Matrix")
+    parser.add_argument(
+        "--models",
+        type=str,
+        default="Qwen/Qwen2.5-0.5B-Instruct,Qwen/Qwen2.5-1.5B-Instruct,Qwen/Qwen2.5-3B-Instruct",
+        help="Comma-separated list of model IDs to benchmark (use model_id::gguf_file for GGUF)",
+    )
+    args = parser.parse_args()
+
+    models = [m.strip() for m in args.models.split(",") if m.strip()]
 
     results = []
     for m in models:

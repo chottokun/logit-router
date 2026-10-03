@@ -65,6 +65,7 @@ def evaluate_quantized_model(
     is_awq: bool = False,
     cases_path: str = "benchmarks/data/deep_eval_cases.json",
     warmup_runs: int = 5,
+    gguf_file: str | None = None,
 ) -> QuantizedModelResult:
     logger.info(f"Initializing {config_name} ({model_id}, method={quant_method})...")
     torch.cuda.empty_cache()
@@ -78,6 +79,7 @@ def evaluate_quantized_model(
         device="cuda",
         load_in_4bit=load_in_4bit,
         is_awq=is_awq,
+        gguf_file=gguf_file,
     )
     vocab_size = router.tokenizer.vocab_size
 
@@ -184,6 +186,22 @@ def main() -> None:
             "load_in_4bit": False,
             "is_awq": True,
         },
+        {
+            "config_name": "Qwen3.5-0.8B-Japanese-SFT-v2-GGUF (Q4_K_M)",
+            "model_id": "Takenoko12345678/Qwen3.5-0.8B-Japanese-SFT-v2-GGUF",
+            "quant_method": "GGUF (Q4_K_M)",
+            "load_in_4bit": False,
+            "is_awq": False,
+            "gguf_file": "Qwen3.5-0.8B-Japanese-SFT-v2-Q4_K_M.gguf",
+        },
+        {
+            "config_name": "Qwen3.5-0.8B-Japanese-SFT-v2-GGUF (Q8_0)",
+            "model_id": "Takenoko12345678/Qwen3.5-0.8B-Japanese-SFT-v2-GGUF",
+            "quant_method": "GGUF (Q8_0)",
+            "load_in_4bit": False,
+            "is_awq": False,
+            "gguf_file": "Qwen3.5-0.8B-Japanese-SFT-v2-Q8_0.gguf",
+        },
     ]
 
     all_results = []
@@ -192,8 +210,9 @@ def main() -> None:
             config_name=cfg["config_name"],
             model_id=cfg["model_id"],
             quant_method=cfg["quant_method"],
-            load_in_4bit=cfg["load_in_4bit"],
-            is_awq=cfg["is_awq"],
+            load_in_4bit=cfg.get("load_in_4bit", False),
+            is_awq=cfg.get("is_awq", False),
+            gguf_file=cfg.get("gguf_file", None),
         )
         all_results.append(asdict(res))
 

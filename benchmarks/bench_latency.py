@@ -13,6 +13,9 @@ def main():
         "--model", type=str, default="Qwen/Qwen2.5-1.5B-Instruct", help="Model name"
     )
     parser.add_argument(
+        "--gguf-file", type=str, default=None, help="GGUF file to load"
+    )
+    parser.add_argument(
         "--iterations", type=int, default=10, help="Number of measurement iterations"
     )
     parser.add_argument("--warmup", type=int, default=3, help="Number of warm-up runs")
@@ -26,8 +29,8 @@ def main():
 
     args = parser.parse_args()
 
-    print(f"Initializing LogitRouter with model={args.model}, device={args.device}")
-    router = LogitRouter(model_id=args.model, device=args.device)
+    print(f"Initializing LogitRouter with model={args.model}, gguf_file={args.gguf_file}, device={args.device}")
+    router = LogitRouter(model_id=args.model, device=args.device, gguf_file=args.gguf_file)
     device = router.device
     print(f"Using device: {device}")
 

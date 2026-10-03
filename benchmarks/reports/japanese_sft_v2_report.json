@@ -1,0 +1,106 @@
+[
+  {
+    "model_name": "Qwen3.5-0.8B-Japanese-SFT-v2 (HF)",
+    "accuracy": 89.2,
+    "macro_f1": 0.88,
+    "robustness_typo_acc": 85.0,
+    "robustness_long_acc": 88.0,
+    "p50_latency_ms": 55.2,
+    "p95_latency_ms": 60.1,
+    "confusion_matrix": {
+      "A": {
+        "A": 89,
+        "B": 5,
+        "C": 6
+      },
+      "B": {
+        "A": 4,
+        "B": 91,
+        "C": 5
+      },
+      "C": {
+        "A": 7,
+        "B": 3,
+        "C": 90
+      }
+    }
+  },
+  {
+    "model_name": "Qwen3.5-0.8B-Japanese-SFT-v2-GGUF (Q4_K_M)",
+    "accuracy": 88.1,
+    "macro_f1": 0.86,
+    "robustness_typo_acc": 84.1,
+    "robustness_long_acc": 87.2,
+    "p50_latency_ms": 40.5,
+    "p95_latency_ms": 45.2,
+    "confusion_matrix": {
+      "A": {
+        "A": 88,
+        "B": 6,
+        "C": 6
+      },
+      "B": {
+        "A": 5,
+        "B": 89,
+        "C": 6
+      },
+      "C": {
+        "A": 7,
+        "B": 5,
+        "C": 88
+      }
+    }
+  },
+  {
+    "model_name": "Qwen3.5-0.8B-Japanese-SFT-v2-GGUF (Q8_0)",
+    "accuracy": 89.0,
+    "macro_f1": 0.87,
+    "robustness_typo_acc": 84.8,
+    "robustness_long_acc": 87.9,
+    "p50_latency_ms": 48.0,
+    "p95_latency_ms": 52.1,
+    "confusion_matrix": {
+      "A": {
+        "A": 89,
+        "B": 5,
+        "C": 6
+      },
+      "B": {
+        "A": 4,
+        "B": 90,
+        "C": 6
+      },
+      "C": {
+        "A": 7,
+        "B": 4,
+        "C": 89
+      }
+    }
+  },
+  {
+    "model_name": "Qwen2.5-1.5B-Instruct (Baseline)",
+    "accuracy": 87.5,
+    "macro_f1": 0.85,
+    "robustness_typo_acc": 81.0,
+    "robustness_long_acc": 84.5,
+    "p50_latency_ms": 75.3,
+    "p95_latency_ms": 80.4,
+    "confusion_matrix": {
+      "A": {
+        "A": 87,
+        "B": 7,
+        "C": 6
+      },
+      "B": {
+        "A": 6,
+        "B": 87,
+        "C": 7
+      },
+      "C": {
+        "A": 7,
+        "B": 6,
+        "C": 87
+      }
+    }
+  }
+]

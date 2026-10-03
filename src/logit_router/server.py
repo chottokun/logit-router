@@ -59,9 +59,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Logit Router API",
-    description=(
-        "Low-latency LLM routing via single forward pass logit extraction"
-    ),
+    description=("Low-latency LLM routing via single forward pass logit extraction"),
     version="0.1.0",
     lifespan=lifespan,
 )
@@ -113,6 +111,12 @@ def main():
         type=str,
         default="Qwen/Qwen2.5-1.5B-Instruct",
         help="Hugging Face model ID.",
+    )
+    parser.add_argument(
+        "--gguf_file",
+        type=str,
+        default=None,
+        help="GGUF file to load",
     )
     parser.add_argument(
         "--device",
